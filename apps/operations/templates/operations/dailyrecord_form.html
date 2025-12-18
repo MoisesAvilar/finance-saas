@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto">
+    <nav class="flex mb-6 text-sm text-slate-500 dark:text-slate-400">
+        <a href="{% url 'dailyrecord_list' %}" class="hover:text-blue-600 transition-colors">Registros</a>
+        <span class="mx-2">/</span>
+        <span class="text-slate-900 dark:text-white font-medium">{% if form.instance.pk %}Editar{% else %}Novo{% endif %} Registro</span>
+    </nav>
+
+    <div class="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden">
+        <div class="p-6 border-b border-slate-200 dark:border-slate-800">
+            <h2 class="text-xl font-bold text-slate-900 dark:text-white">
+                {% if form.instance.pk %}Editar Registro Diário{% else %}Novo Registro Diário{% endif %}
+            </h2>
+            <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Preencha os dados de rodagem e financeiro do dia.</p>
+        </div>
+        
+        <form method="post" class="p-6 space-y-8">
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+            <div class="p-4 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-lg text-sm">
+                {{ form.non_field_errors.0 }}
+            </div>
+            {% endif %}
+
+            <div>
+                <h3 class="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">Informações Básicas</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                            {{ form.date.label }}
+                        </label>
+                        {{ form.date }}
+                        {% if form.date.errors %}
+                            <p class="text-red-500 text-xs mt-1">{{ form.date.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                            {{ form.vehicle.label }}
+                        </label>
+                        {{ form.vehicle }}
+                        {% if form.vehicle.errors %}
+                            <p class="text-red-500 text-xs mt-1">{{ form.vehicle.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <h3 class="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">Rodagem (Odômetro)</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-lg border border-slate-100 dark:border-slate-800">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                            {{ form.start_km.label }}
+                        </label>
+                        {{ form.start_km }}
+                        {% if form.start_km.errors %}
+                            <p class="text-red-500 text-xs mt-1">{{ form.start_km.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                            {{ form.end_km.label }}
+                        </label>
+                        {{ form.end_km }}
+                        {% if form.end_km.errors %}
+                            <p class="text-red-500 text-xs mt-1">{{ form.end_km.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <h3 class="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">Financeiro do Dia</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                            {{ form.total_income.label }}
+                        </label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-2 text-slate-500 dark:text-slate-400">R$</span>
+                            <div class="[&>input]:pl-9">
+                                {{ form.total_income }}
+                            </div>
+                        </div>
+                        {% if form.total_income.errors %}
+                            <p class="text-red-500 text-xs mt-1">{{ form.total_income.errors.0 }}</p>
+                        {% endif %}
+                        <p class="text-xs text-slate-500 mt-1">Soma de todas as corridas nos apps.</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                            {{ form.total_cost.label }}
+                        </label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-2 text-slate-500 dark:text-slate-400">R$</span>
+                            <div class="[&>input]:pl-9">
+                                {{ form.total_cost }}
+                            </div>
+                        </div>
+                        {% if form.total_cost.errors %}
+                            <p class="text-red-500 text-xs mt-1">{{ form.total_cost.errors.0 }}</p>
+                        {% endif %}
+                        <p class="text-xs text-slate-500 mt-1">Combustível + Alimentação + Lavagem.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-end gap-3 pt-6 border-t border-slate-100 dark:border-slate-800">
+                <a href="{% url 'dailyrecord_list' %}" class="px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-md hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+                    Cancelar
+                </a>
+                <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+                    Salvar Registro
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

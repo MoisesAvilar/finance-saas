@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto">
+    <nav class="flex mb-6 text-sm text-slate-500 dark:text-slate-400">
+        <a href="{% url 'maintenance_list' %}" class="hover:text-blue-600 transition-colors">Manutenções</a>
+        <span class="mx-2">/</span>
+        <span class="text-slate-900 dark:text-white font-medium">{% if form.instance.pk %}Editar{% else %}Nova{% endif %} Manutenção</span>
+    </nav>
+
+    <div class="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden">
+        <div class="p-6 border-b border-slate-200 dark:border-slate-800">
+            <h2 class="text-xl font-bold text-slate-900 dark:text-white">
+                {% if form.instance.pk %}Editar Manutenção{% else %}Registrar Manutenção{% endif %}
+            </h2>
+            <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Troca de óleo, pneus, mecânica ou documentação.</p>
+        </div>
+        
+        <form method="post" class="p-6 space-y-8">
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+            <div class="p-4 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-lg text-sm">
+                {{ form.non_field_errors.0 }}
+            </div>
+            {% endif %}
+
+            <div>
+                <h3 class="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">O que foi feito?</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                            {{ form.date.label }}
+                        </label>
+                        {{ form.date }}
+                        {% if form.date.errors %}
+                            <p class="text-red-500 text-xs mt-1">{{ form.date.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                            {{ form.vehicle.label }}
+                        </label>
+                        {{ form.vehicle }}
+                        {% if form.vehicle.errors %}
+                            <p class="text-red-500 text-xs mt-1">{{ form.vehicle.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="col-span-1 md:col-span-2">
+                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                            {{ form.type.label }}
+                        </label>
+                        {{ form.type }}
+                        {% if form.type.errors %}
+                            <p class="text-red-500 text-xs mt-1">{{ form.type.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-span-1 md:col-span-2">
+                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                            {{ form.description.label }}
+                        </label>
+                        {{ form.description }}
+                        <p class="text-xs text-slate-500 mt-1">Ex: Oficina do Zé - Troca de pastilhas de freio.</p>
+                        {% if form.description.errors %}
+                            <p class="text-red-500 text-xs mt-1">{{ form.description.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <h3 class="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">Valores e Kilometragem</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-lg border border-slate-100 dark:border-slate-800">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                            {{ form.cost.label }}
+                        </label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-2 text-slate-500 dark:text-slate-400">R$</span>
+                            <div class="[&>input]:pl-9">
+                                {{ form.cost }}
+                            </div>
+                        </div>
+                        {% if form.cost.errors %}
+                            <p class="text-red-500 text-xs mt-1">{{ form.cost.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                            {{ form.odometer.label }}
+                        </label>
+                        {{ form.odometer }}
+                        <p class="text-xs text-slate-500 mt-1">KM do painel no momento do serviço.</p>
+                        {% if form.odometer.errors %}
+                            <p class="text-red-500 text-xs mt-1">{{ form.odometer.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-end gap-3 pt-6 border-t border-slate-100 dark:border-slate-800">
+                <a href="{% url 'maintenance_list' %}" class="px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-md hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+                    Cancelar
+                </a>
+                <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+                    Salvar Manutenção
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

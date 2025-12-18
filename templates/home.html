@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <div class="text-center py-12">
+        {% if user.is_authenticated %}
+            <h1 class="text-4xl font-bold text-slate-900 dark:text-white mb-4">Bem-vindo de volta!</h1>
+            <p class="text-lg text-slate-600 dark:text-slate-400">Seu painel financeiro está pronto.</p>
+            {% else %}
+            <h1 class="text-4xl font-bold text-slate-900 dark:text-white mb-4">Controle seus ganhos no App</h1>
+            <p class="text-lg text-slate-600 dark:text-slate-400 mb-8">Saiba exatamente quanto você lucra por km rodado.</p>
+            <a href="{% url 'signup' %}" class="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-blue-700 transition dark:bg-blue-600 dark:hover:bg-blue-500">
+                Começar Grátis
+            </a>
+        {% endif %}
+    </div>
+{% endblock %}

@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <h1 class="text-2xl font-bold text-slate-900 dark:text-white mb-6">Meu Perfil</h1>
+
+    <div class="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-6">
+        
+        <h2 class="text-lg font-semibold text-slate-700 dark:text-slate-300 mb-4">Informações Pessoais</h2>
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">{{ form.first_name.label }}</label>
+                    {{ form.first_name }}
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">{{ form.last_name.label }}</label>
+                    {{ form.last_name }}
+                </div>
+                <div class="col-span-1 md:col-span-2">
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">{{ form.email.label }}</label>
+                    {{ form.email }}
+                </div>
+            </div>
+
+            <div class="flex justify-end">
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg transition-colors">
+                    Salvar Alterações
+                </button>
+            </div>
+        </form>
+
+        <hr class="my-8 border-slate-200 dark:border-slate-700">
+
+        <div class="flex justify-between items-center">
+            <div>
+                <h2 class="text-lg font-semibold text-slate-700 dark:text-slate-300">Segurança</h2>
+                <p class="text-sm text-slate-500 dark:text-slate-400">Recomendamos usar uma senha forte.</p>
+            </div>
+            <a href="{% url 'password_change' %}" class="border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 font-medium py-2 px-4 rounded-lg transition-colors">
+                Alterar Senha
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

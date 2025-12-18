@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-md mx-auto bg-white dark:bg-slate-900 p-8 rounded-lg shadow-sm border border-slate-200 dark:border-slate-800 transition-colors">
+    <h2 class="text-2xl font-bold mb-6 text-center text-slate-900 dark:text-white">Acessar Conta</h2>
+    
+    <form method="post" class="space-y-4">
+        {% csrf_token %}
+        
+        {% for field in form %}
+        <div>
+            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">{{ field.label }}</label>
+            <input 
+                type="{{ field.field.widget.input_type }}" 
+                name="{{ field.name }}" 
+                id="{{ field.id_for_label }}"
+                class="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white transition-colors"
+                required
+            >
+            {% if field.errors %}
+                <p class="text-red-500 dark:text-red-400 text-xs mt-1">{{ field.errors.0 }}</p>
+            {% endif %}
+        </div>
+        {% endfor %}
+
+        <button type="submit" class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 font-medium transition-colors">
+            Entrar
+        </button>
+    </form>
+</div>
+{% endblock %}
