@@ -29,7 +29,10 @@
                         <th class="px-6 py-3 text-center">Dias</th>
                         <th class="px-6 py-3 text-center">KM Total</th>
                         <th class="px-6 py-3 text-right">Receita</th>
-                        <th class="px-6 py-3 text-right">Operacional</th> <th class="px-6 py-3 text-right">Manutenção</th> <th class="px-6 py-3 text-right">Lucro Real</th> <th class="px-6 py-3 text-right">R$/KM</th>
+                        <th class="px-6 py-3 text-right">Operacional</th>
+                        <th class="px-6 py-3 text-right">Manutenção</th>
+                        <th class="px-6 py-3 text-right">Lucro Real</th>
+                        <th class="px-6 py-3 text-right">Custo/KM</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-200 dark:divide-slate-800">
@@ -44,9 +47,16 @@
                         <td class="px-6 py-4 text-center font-mono text-slate-500">
                             {{ item.km }} km
                         </td>
-                        <td class="px-6 py-4 text-right text-green-600 dark:text-green-400 font-medium">
-                            R$ {{ item.income|floatformat:2 }}
+                        
+                        <td class="px-6 py-4 text-right">
+                            <div class="text-green-600 dark:text-green-400 font-medium">
+                                R$ {{ item.income|floatformat:2 }}
+                            </div>
+                            <div class="text-[10px] text-blue-500/80 dark:text-blue-400/80 font-medium">
+                                R$ {{ item.income_per_km|floatformat:2 }}/km
+                            </div>
                         </td>
+
                         <td class="px-6 py-4 text-right text-orange-600 dark:text-orange-400">
                             - R$ {{ item.op_cost|floatformat:2 }}
                         </td>
@@ -62,7 +72,8 @@
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="8" class="px-6 py-8 text-center text-slate-400"> Nenhum dado suficiente para gerar relatórios.
+                        <td colspan="8" class="px-6 py-8 text-center text-slate-400">
+                            Nenhum dado suficiente para gerar relatórios.
                         </td>
                     </tr>
                     {% endfor %}
@@ -74,16 +85,11 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    // Preparando os dados vindos do Django
     const labels = [{% for item in report reversed %}"{{ item.month|date:'M/Y' }}",{% endfor %}];
     const incomeData = [{% for item in report reversed %}{{ item.income|stringformat:".2f" }},{% endfor %}];
-    
-    // IMPORTANTE: Aqui usamos o custo TOTAL (Operacional + Manutenção) para o gráfico
     const costData = [{% for item in report reversed %}{{ item.total_cost|stringformat:".2f" }},{% endfor %}];
-    
     const profitData = [{% for item in report reversed %}{{ item.profit|stringformat:".2f" }},{% endfor %}];
 
-    // Detectando Dark Mode para ajustar cores do gráfico
     const isDark = document.documentElement.classList.contains('dark');
     const gridColor = isDark ? '#334155' : '#e2e8f0';
     const textColor = isDark ? '#94a3b8' : '#64748b';
@@ -97,22 +103,22 @@
                 {
                     label: 'Receita',
                     data: incomeData,
-                    backgroundColor: 'rgba(22, 163, 74, 0.7)', // Green
+                    backgroundColor: 'rgba(22, 163, 74, 0.7)',
                     borderColor: 'rgb(22, 163, 74)',
                     borderWidth: 1
                 },
                 {
-                    label: 'Custo Total', // Atualizado label
+                    label: 'Custo Total',
                     data: costData,
-                    backgroundColor: 'rgba(220, 38, 38, 0.7)', // Red
+                    backgroundColor: 'rgba(220, 38, 38, 0.7)',
                     borderColor: 'rgb(220, 38, 38)',
                     borderWidth: 1
                 },
                 {
-                    label: 'Lucro Real', // Atualizado label
+                    label: 'Lucro Real',
                     data: profitData,
                     type: 'line', 
-                    borderColor: 'rgb(37, 99, 235)', // Blue
+                    borderColor: 'rgb(37, 99, 235)',
                     borderWidth: 3,
                     tension: 0.3,
                     pointBackgroundColor: 'rgb(37, 99, 235)'
@@ -134,16 +140,12 @@
                 }
             },
             plugins: {
-                legend: {
-                    labels: { color: textColor }
-                },
+                legend: { labels: { color: textColor } },
                 tooltip: {
                     callbacks: {
                         label: function(context) {
                             let label = context.dataset.label || '';
-                            if (label) {
-                                label += ': ';
-                            }
+                            if (label) { label += ': '; }
                             if (context.parsed.y !== null) {
                                 label += new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(context.parsed.y);
                             }

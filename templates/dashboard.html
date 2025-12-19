@@ -3,47 +3,162 @@
 {% block content %}
 <div class="space-y-8">
     
-    <div class="flex justify-between items-center">
-        <div>
-            <h1 class="text-2xl font-bold text-slate-900 dark:text-white">Visão Geral</h1>
-            <p class="text-slate-500 dark:text-slate-400">Resumo financeiro da sua rodagem.</p>
-        </div>
-        <a href="{% url 'dailyrecord_create' %}" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg flex items-center gap-2 transition-colors">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
-            <span>Registrar Dia</span>
-        </a>
-    </div>
+    {% if active_shift %}
+        <div class="bg-blue-600 dark:bg-blue-700 rounded-2xl shadow-lg p-6 text-white relative overflow-hidden">
+            <div class="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-white opacity-10 rounded-full blur-xl"></div>
+            
+            <div class="relative z-10">
+                <div class="flex justify-between items-start mb-6">
+                    <div>
+                        <span class="inline-flex items-center px-2 py-1 rounded text-xs font-bold bg-green-400 text-green-900 mb-2">
+                            <span class="w-2 h-2 bg-green-700 rounded-full mr-1 animate-pulse"></span>
+                            EM ANDAMENTO
+                        </span>
+                        <h2 class="text-2xl font-bold">{{ active_shift.vehicle.model_name }}</h2>
+                        <p class="opacity-80">Início: {{ active_shift.start_km }} km</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-sm opacity-80">Lucro Atual</p>
+                        <p class="text-3xl font-bold">R$ {{ active_shift.profit|floatformat:2 }}</p>
+                    </div>
+                </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        
-        <div class="bg-white dark:bg-slate-900 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800">
-            <p class="text-sm font-medium text-slate-500 dark:text-slate-400">Faturamento Total</p>
-            <p class="text-2xl font-bold text-slate-900 dark:text-white mt-2">R$ {{ kpis.income|floatformat:2 }}</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+                    
+                    <form action="{% url 'shift_add_finance' 'income' %}" method="post" class="bg-white/10 backdrop-blur-sm p-4 rounded-xl border border-white/20 space-y-3">
+                        {% csrf_token %}
+                        <div class="flex items-center gap-2 mb-2">
+                            <div class="p-1 bg-green-500 rounded text-white">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                            </div>
+                            <span class="text-sm font-bold uppercase tracking-wider opacity-90">Registrar Ganho</span>
+                        </div>
+
+                        <div class="flex gap-2 overflow-x-auto pb-2 custom-scrollbar">
+                            {% for cat in income_categories %}
+                            <label class="cursor-pointer">
+                                <input type="radio" name="category" value="{{ cat.id }}" {% if forloop.first %}checked{% endif %} class="peer sr-only">
+                                <span class="px-3 py-1 text-xs rounded-full bg-white/20 text-white peer-checked:ring-2 peer-checked:ring-white transition-all hover:bg-white/30 font-medium border border-transparent"
+                                      style="border-color: {{ cat.color }};">
+                                    {{ cat.name }}
+                                </span>
+                            </label>
+                            {% empty %}
+                                <a href="{% url 'category_create' %}" class="text-xs text-white underline opacity-70 hover:opacity-100 py-1">Criar Categoria +</a>
+                            {% endfor %}
+                        </div>
+
+                        <div class="flex gap-2">
+                            <input type="number" step="0.01" name="amount" placeholder="Valor (R$)" required
+                                class="w-1/2 bg-white/20 border-0 rounded-lg text-white placeholder-white/60 focus:ring-2 focus:ring-green-400 text-sm py-2 px-3">
+                            <input type="text" name="description" placeholder="Obs (Opcional)"
+                                class="w-1/2 bg-white/20 border-0 rounded-lg text-white placeholder-white/60 focus:ring-2 focus:ring-green-400 text-sm py-2 px-3">
+                        </div>
+                        <button type="submit" class="w-full bg-green-600 hover:bg-green-500 text-white py-2 rounded-lg text-sm font-bold shadow transition-colors">
+                            Adicionar Receita
+                        </button>
+                    </form>
+
+                    <form action="{% url 'shift_add_finance' 'cost' %}" method="post" class="bg-white/10 backdrop-blur-sm p-4 rounded-xl border border-white/20 space-y-3">
+                        {% csrf_token %}
+                        <div class="flex items-center gap-2 mb-2">
+                            <div class="p-1 bg-red-500 rounded text-white">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path></svg>
+                            </div>
+                            <span class="text-sm font-bold uppercase tracking-wider opacity-90">Registrar Despesa</span>
+                        </div>
+
+                        <div class="flex gap-2 overflow-x-auto pb-2 custom-scrollbar">
+                            {% for cat in cost_categories %}
+                            <label class="cursor-pointer">
+                                <input type="radio" name="category" value="{{ cat.id }}" {% if forloop.first %}checked{% endif %} class="peer sr-only">
+                                <span class="px-3 py-1 text-xs rounded-full bg-white/20 text-white peer-checked:ring-2 peer-checked:ring-white transition-all hover:bg-white/30 font-medium border border-transparent"
+                                      style="border-color: {{ cat.color }};">
+                                    {{ cat.name }}
+                                </span>
+                            </label>
+                            {% empty %}
+                                <a href="{% url 'category_create' %}" class="text-xs text-white underline opacity-70 hover:opacity-100 py-1">Criar Categoria +</a>
+                            {% endfor %}
+                        </div>
+
+                        <div class="flex gap-2">
+                            <input type="number" step="0.01" name="amount" placeholder="Valor (R$)" required
+                                class="w-1/2 bg-white/20 border-0 rounded-lg text-white placeholder-white/60 focus:ring-2 focus:ring-red-400 text-sm py-2 px-3">
+                            <input type="text" name="description" placeholder="Obs (Opcional)"
+                                class="w-1/2 bg-white/20 border-0 rounded-lg text-white placeholder-white/60 focus:ring-2 focus:ring-red-400 text-sm py-2 px-3">
+                        </div>
+                        <button type="submit" class="w-full bg-red-600 hover:bg-red-500 text-white py-2 rounded-lg text-sm font-bold shadow transition-colors">
+                            Adicionar Despesa
+                        </button>
+                    </form>
+                </div>
+
+                <div class="mt-6 pt-4 border-t border-white/20 flex justify-between items-center">
+                    <div class="text-sm">
+                        <span class="block opacity-70">Receita: R$ {{ active_shift.total_income }}</span>
+                        <span class="block opacity-70">Custos: R$ {{ active_shift.total_cost }}</span>
+                    </div>
+                    <a href="{% url 'shift_end' %}" class="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-lg transition-transform active:scale-95">
+                        Encerrar Plantão
+                    </a>
+                </div>
+            </div>
         </div>
 
-        <div class="bg-white dark:bg-slate-900 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800">
-            <p class="text-sm font-medium text-slate-500 dark:text-slate-400">Custos Totais</p>
-            <p class="text-2xl font-bold text-red-600 dark:text-red-400 mt-2">R$ {{ kpis.cost|floatformat:2 }}</p>
+    {% else %}
+        <div class="bg-white dark:bg-slate-900 p-8 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 text-center">
+            <div class="w-16 h-16 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+            </div>
+            <h2 class="text-2xl font-bold text-slate-900 dark:text-white mb-2">Pronto para trabalhar?</h2>
+            <p class="text-slate-500 dark:text-slate-400 mb-6">Inicie seu plantão registrando apenas o KM inicial.</p>
+            <a href="{% url 'shift_start' %}" class="inline-flex items-center justify-center w-full sm:w-auto px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-lg shadow-lg shadow-blue-500/30 transition-all hover:-translate-y-1">
+                Iniciar Jornada
+            </a>
         </div>
+    {% endif %}
 
-        <div class="bg-white dark:bg-slate-900 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800">
-            <p class="text-sm font-medium text-slate-500 dark:text-slate-400">Lucro Líquido</p>
-            <p class="text-2xl font-bold {% if kpis.profit >= 0 %}text-green-600 dark:text-green-400{% else %}text-red-600 dark:text-red-400{% endif %} mt-2">
-                R$ {{ kpis.profit|floatformat:2 }}
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+        <div class="bg-white dark:bg-slate-900 p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800">
+            <p class="text-xs font-medium text-slate-500 uppercase">Lucro Líquido</p>
+            <p class="text-lg font-bold {% if kpis.profit >= 0 %}text-green-600{% else %}text-red-600{% endif %}">
+                R$ {{ kpis.profit|floatformat:0 }}
             </p>
         </div>
 
-        <div class="bg-white dark:bg-slate-900 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800">
-            <p class="text-sm font-medium text-slate-500 dark:text-slate-400">Custo Médio / KM</p>
-            <p class="text-2xl font-bold text-blue-600 dark:text-blue-400 mt-2">R$ {{ kpis.cost_per_km|floatformat:2 }}</p>
-            <p class="text-xs text-slate-400 mt-1">Baseado em {{ kpis.km }} km rodados</p>
+        <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl shadow-sm border border-blue-100 dark:border-blue-800">
+            <p class="text-xs font-medium text-blue-600 dark:text-blue-300 uppercase">Receita / KM</p>
+            <p class="text-lg font-bold text-blue-700 dark:text-blue-400">
+                R$ {{ kpis.income_per_km|floatformat:2 }}
+            </p>
+        </div>
+
+        <div class="bg-orange-50 dark:bg-orange-900/20 p-4 rounded-xl shadow-sm border border-orange-100 dark:border-orange-800">
+            <p class="text-xs font-medium text-orange-600 dark:text-orange-300 uppercase">Custo / KM</p>
+            <p class="text-lg font-bold text-orange-700 dark:text-orange-400">
+                R$ {{ kpis.cost_per_km|floatformat:2 }}
+            </p>
+        </div>
+
+        <div class="hidden sm:block bg-white dark:bg-slate-900 p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800">
+            <p class="text-xs font-medium text-slate-500 uppercase">Faturamento</p>
+            <p class="text-lg font-bold text-slate-900 dark:text-white">R$ {{ kpis.income|floatformat:0 }}</p>
+        </div>
+
+        <div class="hidden sm:block bg-white dark:bg-slate-900 p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800">
+            <p class="text-xs font-medium text-slate-500 uppercase">Rodagem</p>
+            <p class="text-lg font-bold text-slate-900 dark:text-white">{{ kpis.km }} km</p>
         </div>
     </div>
 
     <div class="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden">
         <div class="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
-            <h3 class="font-bold text-slate-900 dark:text-white">Últimos Registros</h3>
-            <a href="{% url 'dailyrecord_list' %}" class="text-sm text-blue-600 hover:underline">Ver tudo</a>
+            <h3 class="font-bold text-slate-900 dark:text-white">Últimos Fechamentos</h3>
+            <div class="space-x-4">
+                <a href="{% url 'category_list' %}" class="text-sm text-slate-500 hover:text-blue-600">Categorias</a>
+                <a href="{% url 'dailyrecord_list' %}" class="text-sm text-blue-600 hover:underline">Ver Histórico</a>
+            </div>
         </div>
         <div class="overflow-x-auto">
             <table class="w-full text-left text-sm text-slate-600 dark:text-slate-400">
@@ -51,7 +166,7 @@
                     <tr>
                         <th class="px-6 py-3">Data</th>
                         <th class="px-6 py-3">Veículo</th>
-                        <th class="px-6 py-3 text-right">Lucro Dia</th>
+                        <th class="px-6 py-3 text-right">Resultado</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-200 dark:divide-slate-800">
@@ -66,7 +181,7 @@
                     {% empty %}
                     <tr>
                         <td colspan="3" class="px-6 py-8 text-center text-slate-400">
-                            Nenhum registro encontrado.
+                            Nenhum registro fechado recentemente.
                         </td>
                     </tr>
                     {% endfor %}

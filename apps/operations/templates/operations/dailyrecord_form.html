@@ -3,17 +3,31 @@
 {% block content %}
 <div class="max-w-3xl mx-auto">
     <nav class="flex mb-6 text-sm text-slate-500 dark:text-slate-400">
-        <a href="{% url 'dailyrecord_list' %}" class="hover:text-blue-600 transition-colors">Registros</a>
+        <a href="{% url 'dailyrecord_list' %}" class="hover:text-blue-600 transition-colors">Histórico</a>
         <span class="mx-2">/</span>
-        <span class="text-slate-900 dark:text-white font-medium">{% if form.instance.pk %}Editar{% else %}Novo{% endif %} Registro</span>
+        <span class="text-slate-900 dark:text-white font-medium">Editar Registro</span>
     </nav>
 
     <div class="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden">
-        <div class="p-6 border-b border-slate-200 dark:border-slate-800">
-            <h2 class="text-xl font-bold text-slate-900 dark:text-white">
-                {% if form.instance.pk %}Editar Registro Diário{% else %}Novo Registro Diário{% endif %}
-            </h2>
-            <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Preencha os dados de rodagem e financeiro do dia.</p>
+        <div class="p-6 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
+            <div>
+                <h2 class="text-xl font-bold text-slate-900 dark:text-white">
+                    {% if form.instance.pk %}Editar Registro{% else %}Novo Registro Manual{% endif %}
+                </h2>
+                <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Correção de valores e quilometragem.</p>
+            </div>
+            
+            {% if form.instance.pk %}
+                {% if form.instance.is_active %}
+                    <span class="px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-800 border border-green-200 animate-pulse">
+                        EM ANDAMENTO
+                    </span>
+                {% else %}
+                    <span class="px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-600 border border-slate-200">
+                        FECHADO
+                    </span>
+                {% endif %}
+            {% endif %}
         </div>
         
         <form method="post" class="p-6 space-y-8">
@@ -26,7 +40,7 @@
             {% endif %}
 
             <div>
-                <h3 class="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">Informações Básicas</h3>
+                <h3 class="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">Dados Básicos</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
@@ -50,7 +64,7 @@
             </div>
 
             <div>
-                <h3 class="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">Rodagem (Odômetro)</h3>
+                <h3 class="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">Hodômetro (KM)</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-lg border border-slate-100 dark:border-slate-800">
                     <div>
                         <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
@@ -69,12 +83,15 @@
                         {% if form.end_km.errors %}
                             <p class="text-red-500 text-xs mt-1">{{ form.end_km.errors.0 }}</p>
                         {% endif %}
+                        <p class="text-xs text-slate-500 mt-1">
+                            Dica: Se preencher este campo, o plantão será considerado <strong>Fechado</strong>.
+                        </p>
                     </div>
                 </div>
             </div>
 
             <div>
-                <h3 class="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">Financeiro do Dia</h3>
+                <h3 class="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">Caixa do Dia</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
@@ -89,7 +106,6 @@
                         {% if form.total_income.errors %}
                             <p class="text-red-500 text-xs mt-1">{{ form.total_income.errors.0 }}</p>
                         {% endif %}
-                        <p class="text-xs text-slate-500 mt-1">Soma de todas as corridas nos apps.</p>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
@@ -104,7 +120,6 @@
                         {% if form.total_cost.errors %}
                             <p class="text-red-500 text-xs mt-1">{{ form.total_cost.errors.0 }}</p>
                         {% endif %}
-                        <p class="text-xs text-slate-500 mt-1">Combustível + Alimentação + Lavagem.</p>
                     </div>
                 </div>
             </div>
@@ -114,7 +129,7 @@
                     Cancelar
                 </a>
                 <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
-                    Salvar Registro
+                    Salvar Alterações
                 </button>
             </div>
         </form>

@@ -1,7 +1,8 @@
 from django.views.generic import TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models import Sum, F, Count
+from django.db.models import Sum, F
 from django.db.models.functions import TruncMonth
+from django.db import models
 from operations.models import DailyRecord, Maintenance
 
 
@@ -17,61 +18,54 @@ class MonthlyPerformanceView(LoginRequiredMixin, TemplateView):
             .annotate(month=TruncMonth("date"))
             .values("month")
             .annotate(
-                income=Sum("total_income"),
-                op_cost=Sum("total_cost"),
-                km=Sum(F("end_km") - F("start_km")),
-                days=Count("id"),
+                total_income=Sum("total_income"),
+                total_op_cost=Sum("total_cost"),
+                total_km=Sum(F("end_km") - F("start_km")),
+                days_count=models.Count("id"),
             )
+            .order_by("-month")
         )
 
         maint_qs = (
             Maintenance.objects.filter(user=user)
             .annotate(month=TruncMonth("date"))
             .values("month")
-            .annotate(maint_cost=Sum("cost"))
+            .annotate(total_maint_cost=Sum("cost"))
+            .order_by("-month")
         )
 
-        report_data = {}
+        maint_dict = {item["month"]: item["total_maint_cost"] for item in maint_qs}
+
+        report_data = []
 
         for item in daily_qs:
             month = item["month"]
-            report_data[month] = {
-                "month": month,
-                "income": item["income"] or 0,
-                "op_cost": item["op_cost"] or 0,
-                "maint_cost": 0,
-                "km": item["km"] or 0,
-                "days": item["days"],
-            }
+            income = item["total_income"] or 0
+            op_cost = item["total_op_cost"] or 0
+            km = item["total_km"] or 0
 
-        for item in maint_qs:
-            month = item["month"]
-            if month not in report_data:
-                report_data[month] = {
+            maint_cost = maint_dict.get(month, 0)
+
+            total_cost = op_cost + maint_cost
+            profit = income - total_cost
+
+            cost_per_km = (total_cost / km) if km > 0 else 0
+            income_per_km = (income / km) if km > 0 else 0
+
+            report_data.append(
+                {
                     "month": month,
-                    "income": 0,
-                    "op_cost": 0,
-                    "maint_cost": 0,
-                    "km": 0,
-                    "days": 0,
+                    "days": item["days_count"],
+                    "km": km,
+                    "income": income,
+                    "op_cost": op_cost,
+                    "maint_cost": maint_cost,
+                    "total_cost": total_cost,
+                    "profit": profit,
+                    "cost_per_km": cost_per_km,
+                    "income_per_km": income_per_km,
                 }
-            report_data[month]["maint_cost"] = item["maint_cost"] or 0
+            )
 
-        final_report = []
-        for month, data in report_data.items():
-            total_cost = data["op_cost"] + data["maint_cost"]
-            profit = data["income"] - total_cost
-
-            km = data["km"] or 1
-            cost_per_km = total_cost / km
-
-            data["total_cost"] = total_cost
-            data["profit"] = profit
-            data["cost_per_km"] = cost_per_km
-
-            final_report.append(data)
-
-        final_report.sort(key=lambda x: x["month"], reverse=True)
-
-        context["report"] = final_report
+        context["report"] = report_data
         return context
