@@ -51,13 +51,16 @@ class CustomUserCreationForm(UserFormattingMixin, UserCreationForm):
             "email",
             "first_name",
             "last_name",
-        )  # Adicionei nome no registro
+        )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Torna e-mail obrigatório no cadastro
         self.fields["email"].required = True
         self.fields["first_name"].required = True
+        
+        for field_name, field in self.fields.items():
+            field.widget.attrs['class'] = 'w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors text-slate-900 dark:text-white placeholder-slate-400'
+            field.widget.attrs['placeholder'] = field.label
 
 
 class CustomUserChangeForm(UserFormattingMixin, UserChangeForm):

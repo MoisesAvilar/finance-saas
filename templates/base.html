@@ -78,6 +78,14 @@
                                 {{ user.username.0|upper }}
                             </div>
                         </a>
+                        <form action="{% url 'logout' %}" method="post" class="flex items-center">
+                            {% csrf_token %}
+                            <button type="submit" class="p-2 text-slate-400 hover:text-red-600 transition-colors" title="Sair do Sistema">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
+                                </svg>
+                            </button>
+                        </form>
                     {% else %}
                         <a href="{% url 'login' %}" class="text-sm font-medium hover:text-brand-600">Entrar</a>
                         <a href="{% url 'signup' %}" class="text-sm font-medium bg-brand-600 text-white px-5 py-2.5 rounded-full hover:bg-brand-700 shadow-md shadow-brand-500/20 transition-transform active:scale-95">Criar Conta</a>
