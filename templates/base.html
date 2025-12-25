@@ -1,15 +1,38 @@
+{% load static %}
+{% load pwa %}
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
     <title>Finance SaaS</title>
+    {% progressive_web_app_meta %}
+    <link rel="shortcut icon" type="image/x-icon" href="{% static 'images/favicon.ico' %}">
+
+    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'images/favicon-32x32.png' %}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{% static 'images/favicon-16x16.png' %}">
+
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'images/apple-touch-icon.png' %}">
+    
+    <link rel="manifest" href="{% static 'images/site.webmanifest' %}">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
             darkMode: 'class',
             theme: {
-                extend: {}
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            900: '#1e3a8a',
+                        }
+                    }
+                }
             }
         }
     </script>
@@ -20,68 +43,110 @@
             document.documentElement.classList.remove('dark');
         }
     </script>
+    <style>
+        /* Esconde a barra de rolagem no menu mobile mas mantém funcional */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
 </head>
 <body class="bg-slate-50 text-slate-900 font-sans transition-colors duration-300 dark:bg-slate-950 dark:text-slate-100 flex flex-col min-h-screen">
 
-    <nav class="bg-white border-b border-slate-200 dark:bg-slate-900 dark:border-slate-800 sticky top-0 z-50">
+    <nav class="bg-white border-b border-slate-200 dark:bg-slate-900 dark:border-slate-800 sticky top-0 z-50 shadow-sm">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16">
                 <div class="flex items-center">
-                    <a href="{% url 'home' %}" class="font-bold text-xl text-blue-600 dark:text-blue-500">DriverFinance</a>
+                    <a href="{% url 'home' %}" class="flex items-center gap-2 font-bold text-xl text-brand-600 dark:text-brand-500">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                        <span>DriverFinance</span>
+                    </a>
                 </div>
                 
-                <div class="hidden md:flex items-center space-x-4">
+                <div class="hidden md:flex items-center space-x-6">
                     {% if user.is_authenticated %}
-                        <a href="{% url 'dailyrecord_list' %}" class="text-sm font-medium hover:text-blue-600 transition-colors">Histórico</a>
-                        <a href="{% url 'vehicle_list' %}" class="text-sm font-medium hover:text-blue-600 transition-colors">Veículos</a>
-                        <a href="{% url 'maintenance_list' %}" class="text-sm font-medium hover:text-blue-600 transition-colors">Manutenção</a>
-                        <a href="{% url 'analytics_monthly' %}" class="text-sm font-medium hover:text-blue-600 transition-colors">Relatórios</a>
-                        <span class="text-slate-300 dark:text-slate-700">|</span>
-                        <a href="{% url 'profile_update' %}" class="text-sm font-medium hover:text-blue-600 flex items-center gap-2">
-                            <span>{{ user.first_name|default:user.username }}</span>
+                        <a href="{% url 'dailyrecord_list' %}" class="text-sm font-medium hover:text-brand-600 transition-colors">Histórico</a>
+                        <a href="{% url 'vehicle_list' %}" class="text-sm font-medium hover:text-brand-600 transition-colors">Veículos</a>
+                        <a href="{% url 'maintenance_list' %}" class="text-sm font-medium hover:text-brand-600 transition-colors">Manutenção</a>
+                        <a href="{% url 'analytics_monthly' %}" class="text-sm font-medium hover:text-brand-600 transition-colors">Relatórios</a>
+                        <div class="h-4 w-px bg-slate-200 dark:bg-slate-700"></div>
+                        <a href="{% url 'profile_update' %}" class="text-sm font-medium hover:text-brand-600 flex items-center gap-2">
+                            <div class="w-8 h-8 rounded-full bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 flex items-center justify-center font-bold text-xs">
+                                {{ user.username.0|upper }}
+                            </div>
                         </a>
                     {% else %}
-                        <a href="{% url 'login' %}" class="text-sm font-medium hover:text-blue-600">Entrar</a>
-                        <a href="{% url 'signup' %}" class="text-sm font-medium bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">Criar Conta</a>
+                        <a href="{% url 'login' %}" class="text-sm font-medium hover:text-brand-600">Entrar</a>
+                        <a href="{% url 'signup' %}" class="text-sm font-medium bg-brand-600 text-white px-5 py-2.5 rounded-full hover:bg-brand-700 shadow-md shadow-brand-500/20 transition-transform active:scale-95">Criar Conta</a>
                     {% endif %}
                     
-                    <button id="theme-toggle" class="p-2 rounded-lg text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 focus:outline-none">
+                    <button id="theme-toggle" class="p-2 rounded-lg text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors">
                         <svg id="theme-toggle-dark-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
                         <svg id="theme-toggle-light-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" fill-rule="evenodd" clip-rule="evenodd"></path></svg>
                     </button>
                 </div>
 
-                <div class="flex md:hidden items-center gap-4">
-                    <button id="theme-toggle-mobile" class="p-2 text-slate-500 dark:text-slate-400">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                <div class="flex md:hidden items-center gap-3">
+                    <button id="theme-toggle-mobile" class="p-2 text-slate-500 dark:text-slate-400 active:scale-95 transition-transform">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
                     </button>
-                    <button id="mobile-menu-btn" class="text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white focus:outline-none">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+                    <button id="mobile-menu-btn" class="p-2 text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white active:scale-95 transition-transform">
+                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
                     </button>
                 </div>
             </div>
         </div>
 
-        <div id="mobile-menu" class="hidden md:hidden bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
-            <div class="px-4 pt-2 pb-4 space-y-2">
+        <div id="mobile-menu" class="hidden md:hidden bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 shadow-xl">
+            <div class="px-4 py-4 space-y-1">
                 {% if user.is_authenticated %}
-                    <div class="pb-2 border-b border-slate-100 dark:border-slate-800 mb-2">
-                        <span class="block text-sm font-bold text-slate-800 dark:text-white">Olá, {{ user.first_name|default:user.username }}</span>
-                        <a href="{% url 'profile_update' %}" class="text-xs text-blue-600">Meu Perfil</a>
+                    <div class="flex items-center gap-3 px-3 py-3 mb-2 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
+                        <div class="w-10 h-10 rounded-full bg-brand-600 text-white flex items-center justify-center font-bold text-lg">
+                            {{ user.username.0|upper }}
+                        </div>
+                        <div>
+                            <span class="block font-bold text-slate-900 dark:text-white">{{ user.first_name|default:user.username }}</span>
+                            <a href="{% url 'profile_update' %}" class="text-xs text-brand-600 dark:text-brand-400 font-medium">Editar Perfil</a>
+                        </div>
                     </div>
-                    <a href="{% url 'dailyrecord_list' %}" class="block py-2 text-slate-600 dark:text-slate-300 font-medium">Histórico</a>
-                    <a href="{% url 'vehicle_list' %}" class="block py-2 text-slate-600 dark:text-slate-300 font-medium">Veículos</a>
-                    <a href="{% url 'maintenance_list' %}" class="block py-2 text-slate-600 dark:text-slate-300 font-medium">Manutenção</a>
-                    <a href="{% url 'analytics_monthly' %}" class="block py-2 text-slate-600 dark:text-slate-300 font-medium">Relatórios</a>
+                    
+                    <a href="{% url 'dailyrecord_list' %}" class="flex items-center gap-3 px-3 py-3 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 font-medium active:bg-slate-100 dark:active:bg-slate-700">
+                        <svg class="w-5 h-5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        Histórico
+                    </a>
+                    <a href="{% url 'vehicle_list' %}" class="flex items-center gap-3 px-3 py-3 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 font-medium active:bg-slate-100 dark:active:bg-slate-700">
+                        <svg class="w-5 h-5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 012-2v0a2 2 0 012 2m0 0a2 2 0 012-2v0a2 2 0 012 2"></path></svg>
+                        Veículos
+                    </a>
+                    <a href="{% url 'maintenance_list' %}" class="flex items-center gap-3 px-3 py-3 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 font-medium active:bg-slate-100 dark:active:bg-slate-700">
+                        <svg class="w-5 h-5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                        Manutenção
+                    </a>
+                    <a href="{% url 'analytics_monthly' %}" class="flex items-center gap-3 px-3 py-3 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 font-medium active:bg-slate-100 dark:active:bg-slate-700">
+                        <svg class="w-5 h-5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                        Relatórios
+                    </a>
+                    <div class="border-t border-slate-100 dark:border-slate-800 my-2"></div>
+                    <form action="{% url 'logout' %}" method="post">
+                        {% csrf_token %}
+                        <button type="submit" class="w-full flex items-center gap-3 px-3 py-3 rounded-lg text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 font-medium">
+                            <svg class="w-5 h-5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path></svg>
+                            Sair da Conta
+                        </button>
+                    </form>
                 {% else %}
-                    <a href="{% url 'login' %}" class="block py-2 text-slate-600 dark:text-slate-300">Entrar</a>
-                    <a href="{% url 'signup' %}" class="block py-2 text-blue-600 font-bold">Criar Conta</a>
+                    <a href="{% url 'login' %}" class="block px-3 py-3 text-center rounded-lg text-slate-600 dark:text-slate-300 font-medium hover:bg-slate-50">Entrar</a>
+                    <a href="{% url 'signup' %}" class="block px-3 py-3 text-center rounded-lg bg-brand-600 text-white font-bold shadow-lg shadow-brand-500/30 mt-2">Criar Conta Grátis</a>
                 {% endif %}
             </div>
         </div>
     </nav>
 
-    <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-2"></div>
+    <div id="toast-container" class="fixed bottom-5 right-5 left-5 md:top-5 md:right-5 md:left-auto md:bottom-auto z-50 flex flex-col gap-2 pointer-events-none">
+        </div>
 
     <main class="flex-grow max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {% block content %}{% endblock %}
@@ -96,9 +161,9 @@
             menu.classList.toggle('hidden');
         });
 
-        // Lógica do Tema (Igual anterior)
+        // Lógica do Tema
         const themeToggleBtn = document.getElementById('theme-toggle');
-        const themeToggleMobile = document.getElementById('theme-toggle-mobile'); // Botão extra pro mobile
+        const themeToggleMobile = document.getElementById('theme-toggle-mobile');
         const darkIcon = document.getElementById('theme-toggle-dark-icon');
         const lightIcon = document.getElementById('theme-toggle-light-icon');
 
@@ -111,33 +176,38 @@
         function updateIcons() {
             const isDark = document.documentElement.classList.contains('dark');
             if (isDark) {
-                darkIcon.classList.add('hidden');
-                lightIcon.classList.remove('hidden');
+                if(darkIcon) darkIcon.classList.add('hidden');
+                if(lightIcon) lightIcon.classList.remove('hidden');
             } else {
-                lightIcon.classList.add('hidden');
-                darkIcon.classList.remove('hidden');
+                if(lightIcon) lightIcon.classList.add('hidden');
+                if(darkIcon) darkIcon.classList.remove('hidden');
             }
         }
         
-        // Inicializa
         updateIcons();
-        themeToggleBtn.addEventListener('click', toggleTheme);
-        themeToggleMobile.addEventListener('click', toggleTheme);
+        if(themeToggleBtn) themeToggleBtn.addEventListener('click', toggleTheme);
+        if(themeToggleMobile) themeToggleMobile.addEventListener('click', toggleTheme);
 
-        // Toasts (Igual anterior)
+        // Toasts Mobile-Friendly
         function showToast(message, tags) {
             const container = document.getElementById('toast-container');
-            let bgClass = 'bg-blue-500 border-blue-700'; 
+            let bgClass = 'bg-brand-600 border-brand-800'; 
             if (tags.includes('success')) bgClass = 'bg-green-600 border-green-800';
             if (tags.includes('error')) bgClass = 'bg-red-600 border-red-800';
             if (tags.includes('warning')) bgClass = 'bg-yellow-500 border-yellow-700';
             
             const toast = document.createElement('div');
-            toast.className = `${bgClass} text-white px-6 py-4 rounded shadow-lg border-l-4 transform transition-all duration-300 translate-x-full flex items-center min-w-[300px]`;
-            toast.innerHTML = `<span class="font-medium flex-1">${message}</span><button onclick="this.parentElement.remove()" class="ml-4 opacity-75 hover:opacity-100 font-bold">×</button>`;
+            // pointer-events-auto para permitir clicar no X mesmo com container none
+            toast.className = `${bgClass} text-white px-4 py-3 rounded-lg shadow-lg border-l-4 transform transition-all duration-300 translate-y-full md:translate-x-full md:translate-y-0 flex items-center w-full md:min-w-[300px] pointer-events-auto`;
+            toast.innerHTML = `<span class="font-medium flex-1 text-sm">${message}</span><button onclick="this.parentElement.remove()" class="ml-4 p-1 hover:bg-white/20 rounded font-bold">×</button>`;
             container.appendChild(toast);
-            requestAnimationFrame(() => toast.classList.remove('translate-x-full'));
-            setTimeout(() => { toast.classList.add('opacity-0', 'translate-x-full'); setTimeout(() => toast.remove(), 300); }, 5000);
+            
+            requestAnimationFrame(() => toast.classList.remove('translate-y-full', 'translate-x-full'));
+            
+            setTimeout(() => { 
+                toast.classList.add('opacity-0', 'translate-y-full', 'md:translate-x-full'); 
+                setTimeout(() => toast.remove(), 300); 
+            }, 5000);
         }
 
         document.addEventListener('DOMContentLoaded', () => {

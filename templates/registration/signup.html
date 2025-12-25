@@ -1,30 +1,60 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="max-w-md mx-auto bg-white dark:bg-slate-900 p-8 rounded-lg shadow-sm border border-slate-200 dark:border-slate-800 transition-colors">
-    <h2 class="text-2xl font-bold mb-6 text-center text-slate-900 dark:text-white">Criar Nova Conta</h2>
-    
-    <form method="post" class="space-y-4">
-        {% csrf_token %}
+<div class="flex items-center justify-center min-h-[70vh] py-10">
+    <div class="w-full max-w-lg">
         
-        {% for field in form %}
-        <div>
-            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">{{ field.label }}</label>
-            <div class="[&>input]:w-full [&>input]:px-3 [&>input]:py-2 [&>input]:border [&>input]:border-slate-300 dark:[&>input]:border-slate-700 [&>input]:rounded-md [&>input]:focus:outline-none [&>input]:focus:ring-2 [&>input]:focus:ring-blue-500 [&>input]:bg-white dark:[&>input]:bg-slate-950 [&>input]:text-slate-900 dark:[&>input]:text-white [&>input]:transition-colors">
-                {{ field }}
+        <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+            <div class="p-8 pb-6 text-center">
+                <div class="w-16 h-16 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg>
+                </div>
+                <h2 class="text-2xl font-bold text-slate-900 dark:text-white">Crie sua Conta Grátis</h2>
+                <p class="text-slate-500 dark:text-slate-400 mt-2">Comece a controlar seus ganhos hoje mesmo.</p>
             </div>
-            {% if field.help_text %}
-                <p class="text-slate-400 dark:text-slate-500 text-xs mt-1">{{ field.help_text }}</p>
-            {% endif %}
-            {% if field.errors %}
-                <p class="text-red-500 dark:text-red-400 text-xs mt-1">{{ field.errors.0 }}</p>
-            {% endif %}
-        </div>
-        {% endfor %}
 
-        <button type="submit" class="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 font-medium transition-colors">
-            Cadastrar
-        </button>
-    </form>
+            <form method="post" class="p-8 pt-0 space-y-5">
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                <div class="p-4 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-lg text-sm">
+                    {{ form.non_field_errors.0 }}
+                </div>
+                {% endif %}
+
+                {% for field in form %}
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                        {{ field.label }} {% if field.field.required %}<span class="text-red-500">*</span>{% endif %}
+                    </label>
+                    
+                    <div class="relative">
+                        {{ field }}
+                    </div>
+
+                    {% if field.help_text %}
+                    <p class="text-xs text-slate-500 mt-1">{{ field.help_text|safe }}</p>
+                    {% endif %}
+                    
+                    {% if field.errors %}
+                    <p class="text-xs text-red-500 mt-1 font-medium">{{ field.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                {% endfor %}
+
+                <button type="submit" class="w-full py-3 px-4 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg shadow-lg shadow-green-500/30 transition-all hover:-translate-y-0.5 mt-6">
+                    Criar Minha Conta
+                </button>
+            </form>
+
+            <div class="p-6 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 text-center">
+                <p class="text-sm text-slate-600 dark:text-slate-400">
+                    Já tem cadastro? 
+                    <a href="{% url 'login' %}" class="font-bold text-blue-600 hover:text-blue-500 hover:underline">Faça Login</a>
+                </p>
+            </div>
+        </div>
+        
+    </div>
 </div>
 {% endblock %}

@@ -28,6 +28,7 @@ INSTALLED_APPS = [
     'rest_framework',
 
     # Local apps
+    'pwa',
     'core',
     'common',
     'accounts',
@@ -108,7 +109,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'pt-br'
+
+USE_L10N = True
 
 TIME_ZONE = 'UTC'
 
@@ -118,9 +121,39 @@ USE_TZ = True
 
 
 STATIC_URL = 'static/'
-STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),
+]
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # Configuração moderna do Whitenoise (Compressão e Cache)
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 AUTH_USER_MODEL = 'accounts.CustomUser'
+
+# --- CONFIGURAÇÕES PWA ---
+PWA_APP_NAME = 'DriverFinance'
+PWA_APP_DESCRIPTION = "Controle financeiro inteligente para motoristas."
+PWA_APP_THEME_COLOR = '#2563eb'
+PWA_APP_BACKGROUND_COLOR = '#ffffff'
+PWA_APP_DISPLAY = 'standalone'
+PWA_APP_SCOPE = '/'
+PWA_APP_START_URL = '/'
+PWA_APP_ICONS = [
+    {
+        'src': '/static/images/android-chrome-192x192.png',
+        'sizes': '192x192'
+    },
+    {
+        'src': '/static/images/android-chrome-512x512.png',
+        'sizes': '512x512'
+    }
+]
+
+PWA_APP_ICONS_APPLE = [
+    {
+        'src': '/static/images/apple-touch-icon.png',
+        'sizes': '180x180'
+    }
+]
+PWA_SERVICE_WORKER_PATH = os.path.join(BASE_DIR, 'static/js/serviceworker.js')

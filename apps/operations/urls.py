@@ -26,6 +26,13 @@ urlpatterns = [
     path('categorias/<int:pk>/editar/', views.CategoryUpdateView.as_view(), name='category_update'),
     path('categorias/<int:pk>/excluir/', views.CategoryDeleteView.as_view(), name='category_delete'),
 
+    # Rota de Detalhes (Extrato)
+    path('<int:pk>/detalhes/', views.DailyRecordDetailView.as_view(), name='dailyrecord_detail'),
+
+    # Rotas de Transações Individuais
+    path('transacao/<int:pk>/editar/', views.TransactionUpdateView.as_view(), name='transaction_update'),
+    path('transacao/<int:pk>/excluir/', views.TransactionDeleteView.as_view(), name='transaction_delete'),
+
     # Rota da API (AJAX)
     path('api/get-km/<int:vehicle_id>/', views.get_last_km, name='get_last_km'),
 ]

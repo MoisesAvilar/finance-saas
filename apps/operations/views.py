@@ -1,11 +1,18 @@
 from django.shortcuts import redirect, get_object_or_404
+from django.db.models import Sum
 from django.http import JsonResponse
 from django.urls import reverse_lazy
 from django.utils import timezone
 from django.views import View
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.messages.views import SuccessMessageMixin
-from django.views.generic import ListView, CreateView, UpdateView, DeleteView
+from django.views.generic import (
+    ListView,
+    CreateView,
+    UpdateView,
+    DeleteView,
+    DetailView,
+)
 from django.contrib import messages
 from .models import DailyRecord, Maintenance, Transaction, Category
 from vehicles.models import Vehicle
@@ -15,7 +22,7 @@ from .forms import (
     MaintenanceForm,
     StartShiftForm,
     EndShiftForm,
-    QuickFinanceForm,
+    TransactionForm,
 )
 
 
@@ -283,3 +290,109 @@ def get_last_km(request, vehicle_id):
             "message": f"Primeira jornada! Sugerido KM do cadastro ({start_km} km)",
         }
     )
+
+
+class DailyRecordDetailView(LoginRequiredMixin, DetailView):
+    model = DailyRecord
+    template_name = "operations/dailyrecord_detail.html"
+    context_object_name = "record"
+
+    def get_queryset(self):
+        # Garante que o usuário só veja os próprios registros
+        return DailyRecord.objects.filter(user=self.request.user)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Busca as transações ordenadas por horário (mais recentes primeiro)
+        context["transactions"] = self.object.transactions.all().order_by("-created_at")
+        return context
+
+
+class TransactionUpdateView(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
+    model = Transaction
+    form_class = TransactionForm
+    template_name = "operations/transaction_form.html"
+    success_message = "Transação atualizada e totais recalculados!"
+
+    def get_queryset(self):
+        # Garante que só edita transações dos seus próprios registros
+        return Transaction.objects.filter(record__user=self.request.user)
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs["user"] = self.request.user
+        kwargs["type"] = (
+            self.object.type
+        )  # Passa o tipo (INCOME/COST) para filtrar categorias
+        return kwargs
+
+    def get_success_url(self):
+        return reverse_lazy("dailyrecord_detail", kwargs={"pk": self.object.record.pk})
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        self.recalculate_record_totals(self.object.record)
+        return response
+
+    def recalculate_record_totals(self, record):
+        """Re-soma todas as transações e atualiza o Registro Diário."""
+        incomes = (
+            record.transactions.filter(type="INCOME").aggregate(total=Sum("amount"))[
+                "total"
+            ]
+            or 0
+        )
+        costs = (
+            record.transactions.filter(type="COST").aggregate(total=Sum("amount"))[
+                "total"
+            ]
+            or 0
+        )
+
+        record.total_income = incomes
+        record.total_cost = costs
+        record.save()
+
+
+class TransactionDeleteView(LoginRequiredMixin, SuccessMessageMixin, DeleteView):
+    model = Transaction
+    template_name = "includes/confirm_delete.html"
+    success_message = "Transação removida."
+
+    def get_queryset(self):
+        return Transaction.objects.filter(record__user=self.request.user)
+
+    def get_success_url(self):
+        return reverse_lazy("dailyrecord_detail", kwargs={"pk": self.object.record.pk})
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["title"] = f"Excluir {self.object.get_type_display()}"
+        context["cancel_url"] = reverse_lazy(
+            "dailyrecord_detail", kwargs={"pk": self.object.record.pk}
+        )
+        return context
+
+    def form_valid(self, form):
+        record = self.object.record
+        response = super().form_valid(form)
+
+        # Recalcula APÓS deletar
+        incomes = (
+            record.transactions.filter(type="INCOME").aggregate(total=Sum("amount"))[
+                "total"
+            ]
+            or 0
+        )
+        costs = (
+            record.transactions.filter(type="COST").aggregate(total=Sum("amount"))[
+                "total"
+            ]
+            or 0
+        )
+
+        record.total_income = incomes
+        record.total_cost = costs
+        record.save()
+
+        return response

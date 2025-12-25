@@ -9,12 +9,15 @@ from .models import CustomUser
 
 
 class SignUpView(SuccessMessageMixin, CreateView):
-    form_class = CustomUserCreationForm
+    form_class = (
+        CustomUserCreationForm  # Agora usa nosso form com validação de nome/email
+    )
     success_url = reverse_lazy("login")
     template_name = "registration/signup.html"
     success_message = "Conta criada com sucesso! Faça login para começar."
 
     def form_invalid(self, form):
+        # Feedback visual caso o form falhe
         messages.error(self.request, "Erro ao criar conta. Verifique os dados abaixo.")
         return super().form_invalid(form)
 
@@ -36,6 +39,7 @@ class ProfileUpdateView(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
     success_message = "Dados do perfil atualizados com sucesso!"
 
     def get_object(self):
+        # Garante que o usuário só edite o PRÓPRIO perfil
         return self.request.user
 
 

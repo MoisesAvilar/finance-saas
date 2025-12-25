@@ -1,94 +1,110 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="max-w-2xl mx-auto">
-    <nav class="flex mb-6 text-sm text-slate-500 dark:text-slate-400">
-        <a href="{% url 'vehicle_list' %}" class="hover:text-blue-600 transition-colors">Veículos</a>
-        <span class="mx-2">/</span>
-        <span class="text-slate-900 dark:text-white font-medium">{% if form.instance.pk %}Editar{% else %}Novo{% endif %} Veículo</span>
-    </nav>
+<div class="max-w-2xl mx-auto mt-6">
+    
+    <div class="flex items-center justify-between mb-6">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-900 dark:text-white">
+                {% if form.instance.pk %}Editar Veículo{% else %}Novo Veículo{% endif %}
+            </h1>
+            <p class="text-slate-500 dark:text-slate-400">Cadastre os dados do seu instrumento de trabalho.</p>
+        </div>
+    </div>
 
     <div class="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden">
-        <div class="p-6 border-b border-slate-200 dark:border-slate-800">
-            <h2 class="text-xl font-bold text-slate-900 dark:text-white">
-                {% if form.instance.pk %}Editar Veículo{% else %}Adicionar Veículo{% endif %}
-            </h2>
-            <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Preencha as informações do veículo.</p>
-        </div>
-        
-        <form method="post" class="p-6 space-y-6">
+        <form method="post" class="p-8 space-y-8">
             {% csrf_token %}
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                
-                <div class="col-span-2">
-                    <label for="{{ form.model_name.id_for_label }}" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                        {{ form.model_name.label }}
-                    </label>
-                    <input type="text" name="{{ form.model_name.name }}" id="{{ form.model_name.id_for_label }}" 
-                           value="{{ form.model_name.value|default:'' }}"
-                           class="w-full px-3 py-2 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-white transition-colors"
-                           placeholder="Ex: Fiat Uno Vivace 1.0" required>
-                    {% if form.model_name.errors %}
-                        <p class="text-red-500 text-xs mt-1">{{ form.model_name.errors.0 }}</p>
-                    {% endif %}
-                </div>
+            {% if form.non_field_errors %}
+            <div class="p-4 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-lg text-sm border border-red-100 dark:border-red-800">
+                {{ form.non_field_errors.0 }}
+            </div>
+            {% endif %}
 
-                <div>
-                    <label for="{{ form.plate.id_for_label }}" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                        {{ form.plate.label }}
-                    </label>
-                    <input type="text" name="{{ form.plate.name }}" id="{{ form.plate.id_for_label }}" 
-                           value="{{ form.plate.value|default:'' }}"
-                           class="w-full px-3 py-2 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-white transition-colors uppercase font-mono"
-                           placeholder="ABC-1234">
-                    {% if form.plate.errors %}
-                        <p class="text-red-500 text-xs mt-1">{{ form.plate.errors.0 }}</p>
-                    {% endif %}
-                </div>
+            <div>
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 border-b border-slate-100 dark:border-slate-800 pb-2">Identificação</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                            {{ form.model_name.label }} <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.model_name }}
+                        {% if form.model_name.errors %}
+                            <p class="text-xs text-red-500 mt-1 font-bold">{{ form.model_name.errors.0 }}</p>
+                        {% endif %}
+                    </div>
 
-                <div>
-                    <label for="{{ form.fuel_type.id_for_label }}" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                        {{ form.fuel_type.label }}
-                    </label>
-                    {{ form.fuel_type }}
-                    {% if form.fuel_type.errors %}
-                        <p class="text-red-500 text-xs mt-1">{{ form.fuel_type.errors.0 }}</p>
-                    {% endif %}
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                            {{ form.plate.label }}
+                        </label>
+                        {{ form.plate }}
+                        <p class="text-xs text-slate-500 mt-1">Digite apenas letras e números.</p>
+                        {% if form.plate.errors %}
+                            <p class="text-xs text-red-500 mt-1 font-bold">{{ form.plate.errors.0 }}</p>
+                        {% endif %}
+                    </div>
                 </div>
-
-                <div>
-                    <label for="{{ form.initial_km.id_for_label }}" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                        {{ form.initial_km.label }}
-                    </label>
-                    <input type="number" name="{{ form.initial_km.name }}" id="{{ form.initial_km.id_for_label }}" 
-                           value="{{ form.initial_km.value|default:'' }}"
-                           class="w-full px-3 py-2 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-white transition-colors">
-                    {% if form.initial_km.errors %}
-                        <p class="text-red-500 text-xs mt-1">{{ form.initial_km.errors.0 }}</p>
-                    {% endif %}
-                </div>
-
-                <div class="col-span-2 flex items-center">
-                    <input type="checkbox" name="{{ form.is_active.name }}" id="{{ form.is_active.id_for_label }}" 
-                           {% if form.is_active.value %}checked{% endif %}
-                           class="w-4 h-4 text-blue-600 bg-slate-100 border-slate-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-slate-800 focus:ring-2 dark:bg-slate-700 dark:border-slate-600">
-                    <label for="{{ form.is_active.id_for_label }}" class="ml-2 text-sm font-medium text-slate-900 dark:text-slate-300">
-                        Veículo está ativo e em uso?
-                    </label>
-                </div>
-
             </div>
 
-            <div class="flex items-center justify-end gap-3 pt-6 border-t border-slate-100 dark:border-slate-800">
-                <a href="{% url 'vehicle_list' %}" class="px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-md hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+            <div>
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 border-b border-slate-100 dark:border-slate-800 pb-2">Detalhes Técnicos</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                            {{ form.fuel_type.label }}
+                        </label>
+                        {{ form.fuel_type }}
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                            {{ form.initial_km.label }} <span class="text-red-500">*</span>
+                        </label>
+                        <div class="relative">
+                            {{ form.initial_km }}
+                            <span class="absolute right-3 top-2 text-slate-400 text-sm">km</span>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-1">Usado como base para sua primeira jornada.</p>
+                        {% if form.initial_km.errors %}
+                            <p class="text-xs text-red-500 mt-1 font-bold">{{ form.initial_km.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-lg border border-slate-100 dark:border-slate-800 flex items-center gap-3">
+                {{ form.is_active }}
+                <div>
+                    <label class="block text-sm font-medium text-slate-900 dark:text-white cursor-pointer" for="{{ form.is_active.id_for_label }}">
+                        Veículo Ativo
+                    </label>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Desmarque se você vendeu ou parou de usar este veículo.</p>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
+                <a href="{% url 'vehicle_list' %}" class="px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors">
                     Cancelar
                 </a>
-                <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+                <button type="submit" class="px-6 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 shadow-md shadow-blue-500/20 transition-all">
                     Salvar Veículo
                 </button>
             </div>
         </form>
     </div>
 </div>
+
+<script>
+    // Script simples para forçar PLACA em maiúsculo enquanto digita
+    document.addEventListener('DOMContentLoaded', function() {
+        const plateInput = document.getElementById('id_plate');
+        if (plateInput) {
+            plateInput.addEventListener('input', function() {
+                this.value = this.value.toUpperCase();
+            });
+        }
+    });
+</script>
 {% endblock %}
