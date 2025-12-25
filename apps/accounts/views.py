@@ -1,8 +1,9 @@
 from django.contrib.auth.views import LoginView, PasswordChangeView
+from django.contrib.auth import logout
 from django.contrib.messages.views import SuccessMessageMixin
 from django.contrib import messages
 from django.urls import reverse_lazy
-from django.views.generic.edit import CreateView, UpdateView
+from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from .forms import CustomUserCreationForm, UserUpdateForm
 from .models import CustomUser
@@ -49,3 +50,18 @@ class CustomPasswordChangeView(
     template_name = "registration/password_change_form.html"
     success_url = reverse_lazy("profile_update")
     success_message = "Sua senha foi alterada com sucesso."
+
+
+class DeleteAccountView(LoginRequiredMixin, SuccessMessageMixin, DeleteView):
+    model = CustomUser
+    template_name = "registration/confirm_account_delete.html"
+    success_url = reverse_lazy("home")
+    success_message = "Sua conta e todos os dados foram excluídos permanentemente."
+
+    def get_object(self):
+        return self.request.user
+
+    def delete(self, request, *args, **kwargs):
+        response = super().delete(request, *args, **kwargs)
+        logout(request)
+        return response

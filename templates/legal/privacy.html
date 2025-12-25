@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto py-12 px-4">
+    <div class="bg-white dark:bg-slate-900 p-8 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800">
+        <h1 class="text-3xl font-bold text-slate-900 dark:text-white mb-6">Política de Privacidade</h1>
+        <p class="text-sm text-slate-500 mb-8">Última atualização: {% now "d/m/Y" %}</p>
+
+        <div class="prose dark:prose-invert max-w-none text-slate-600 dark:text-slate-300 space-y-6">
+            <h3 class="text-xl font-bold text-slate-900 dark:text-white">1. Introdução</h3>
+            <p>O <strong>Corre Certo</strong> ("nós") valoriza sua privacidade. Esta política descreve como coletamos, usamos e protegemos seus dados pessoais ao utilizar nossa plataforma de gestão financeira para motoristas.</p>
+
+            <h3 class="text-xl font-bold text-slate-900 dark:text-white">2. Dados que Coletamos</h3>
+            <ul class="list-disc pl-5 space-y-2">
+                <li><strong>Dados de Conta:</strong> Nome, sobrenome e e-mail (para login e recuperação de senha).</li>
+                <li><strong>Dados do Veículo:</strong> Modelo, placa e quilometragem (para cálculos de manutenção).</li>
+                <li><strong>Dados Financeiros:</strong> Valores de receitas, despesas e categorias inseridas manualmente por você.</li>
+            </ul>
+
+            <h3 class="text-xl font-bold text-slate-900 dark:text-white">3. Como Usamos seus Dados</h3>
+            <p>Seus dados são usados exclusivamente para:</p>
+            <ul class="list-disc pl-5 space-y-2">
+                <li>Fornecer os painéis de controle e relatórios financeiros.</li>
+                <li>Calcular métricas como Lucro por KM e custos de manutenção.</li>
+                <li>Autenticar seu acesso e proteger sua conta.</li>
+            </ul>
+            <p class="font-bold">Nós não vendemos, alugamos ou compartilhamos seus dados pessoais com terceiros para fins de marketing.</p>
+
+            <h3 class="text-xl font-bold text-slate-900 dark:text-white">4. Armazenamento e Segurança</h3>
+            <p>Seus dados são armazenados em servidores seguros com criptografia padrão de mercado. Embora nos esforcemos para proteger suas informações, nenhum serviço é 100% inviolável.</p>
+
+            <h3 class="text-xl font-bold text-slate-900 dark:text-white">5. Seus Direitos (LGPD)</h3>
+            <p>Você tem o direito de:</p>
+            <ul class="list-disc pl-5 space-y-2">
+                <li>Acessar seus dados a qualquer momento via Painel.</li>
+                <li>Corrigir dados incompletos ou inexatos no seu Perfil.</li>
+                <li><strong>Excluir sua conta:</strong> Você pode solicitar a exclusão total da sua conta e de todos os registros financeiros associados através da página de configurações de perfil.</li>
+            </ul>
+
+            <h3 class="text-xl font-bold text-slate-900 dark:text-white">6. Contato</h3>
+            <p>Para dúvidas sobre privacidade, entre em contato pelo e-mail: suporte@correcerto.com.br</p>
+        </div>
+
+        <div class="mt-8 pt-6 border-t border-slate-100 dark:border-slate-800">
+            <a href="{% url 'home' %}" class="text-blue-600 hover:underline">Voltar para o Início</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

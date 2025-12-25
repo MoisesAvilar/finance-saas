@@ -160,6 +160,37 @@
         {% block content %}{% endblock %}
     </main>
 
+    <footer class="bg-white border-t border-slate-200 dark:bg-slate-900 dark:border-slate-800 mt-auto">
+        <div class="max-w-4xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+                
+                <div class="text-center md:text-left">
+                    <div class="flex items-center justify-center md:justify-start gap-2 mb-1">
+                        <svg class="w-5 h-5 text-brand-600 dark:text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                        <span class="font-bold text-slate-900 dark:text-white">Corre Certo</span>
+                    </div>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">
+                        &copy; {% now "Y" %} Corre Certo. Feito para quem roda.
+                    </p>
+                </div>
+
+                <div class="flex gap-6 text-sm">
+                    <a href="{% url 'privacy' %}" class="text-slate-500 hover:text-brand-600 dark:text-slate-400 dark:hover:text-brand-400 transition-colors">
+                        Privacidade
+                    </a>
+                    <a href="{% url 'terms' %}" class="text-slate-500 hover:text-brand-600 dark:text-slate-400 dark:hover:text-brand-400 transition-colors">
+                        Termos
+                    </a>
+                    
+                    <a href="{% url 'help' %}" class="text-slate-500 hover:text-brand-600 dark:text-slate-400 dark:hover:text-brand-400 transition-colors">
+                        Ajuda
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    </footer>
+
     <script>
         // Lógica do Menu Mobile
         const btn = document.getElementById('mobile-menu-btn');
