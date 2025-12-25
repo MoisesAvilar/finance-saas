@@ -1,49 +1,64 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="max-w-md mx-auto mt-10">
-    <div class="bg-white dark:bg-slate-900 rounded-xl shadow-lg border border-slate-200 dark:border-slate-800 overflow-hidden">
-        <div class="p-6 bg-blue-600">
-            <h2 class="text-xl font-bold text-white flex items-center gap-2">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                Iniciar Jornada
-            </h2>
-            <p class="text-blue-100 text-sm mt-1">Qual veículo e KM atual?</p>
-        </div>
+<div class="flex items-center justify-center min-h-[60vh]">
+    <div class="w-full max-w-lg">
         
-        <form method="post" class="p-6 space-y-6">
-            {% csrf_token %}
-            
-            {% if form.non_field_errors %}
-                <div class="p-3 bg-red-100 text-red-700 rounded text-sm">{{ form.non_field_errors.0 }}</div>
-            {% endif %}
-
-            <div>
-                <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Veículo</label>
-                {{ form.vehicle }}
-            </div>
-
-            <div>
-                <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">KM Inicial (Painel)</label>
-                <div class="relative">
-                    {{ form.start_km }}
-                    
-                    <div id="loading-icon" class="absolute right-3 top-3 hidden">
-                        <svg class="animate-spin h-5 w-5 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                    </div>
+        <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+            <div class="p-8 pb-6 text-center">
+                <div class="w-16 h-16 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                 </div>
-                <p id="km-feedback" class="text-xs text-blue-600 dark:text-blue-400 mt-1 font-medium h-4"></p>
+                <h2 class="text-2xl font-bold text-slate-900 dark:text-white">Iniciar Jornada</h2>
+                <p class="text-slate-500 dark:text-slate-400 mt-2">Vamos começar os trabalhos de hoje!</p>
             </div>
 
-            <button type="submit" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg shadow transition-colors text-lg">
-                ABRIR PLANTÃO
-            </button>
-            
-            <a href="{% url 'home' %}" class="block text-center text-sm text-slate-500 hover:text-slate-800 dark:hover:text-slate-300">Cancelar</a>
-        </form>
+            <form method="post" class="p-8 pt-0 space-y-6">
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                <div class="p-4 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-lg text-sm border border-red-100 dark:border-red-800 font-bold text-center">
+                    {{ form.non_field_errors.0 }}
+                </div>
+                {% endif %}
+
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                        {{ form.vehicle.label }}
+                    </label>
+                    {{ form.vehicle }}
+                    {% if form.vehicle.errors %}
+                        <p class="text-xs text-red-500 mt-1 font-bold">{{ form.vehicle.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                        {{ form.start_km.label }}
+                    </label>
+                    <div class="relative">
+                        {{ form.start_km }}
+                        <span class="absolute right-3 top-2.5 text-slate-400 text-sm">km</span>
+                    </div>
+                    <div id="km-loading" class="hidden mt-1 text-xs text-blue-500 flex items-center gap-1">
+                        Buscando último KM...
+                    </div>
+                    
+                    {% if form.start_km.errors %}
+                        <p class="text-xs text-red-500 mt-1 font-bold">{{ form.start_km.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div class="pt-2">
+                    <button type="submit" class="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg shadow-lg transition-all">
+                        Confirmar Início
+                    </button>
+                    <a href="{% url 'home' %}" class="block text-center mt-4 text-sm text-slate-500 hover:text-slate-800 dark:hover:text-slate-300">
+                        Cancelar
+                    </a>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 
@@ -51,51 +66,38 @@
     document.addEventListener('DOMContentLoaded', function() {
         const vehicleSelect = document.getElementById('id_vehicle');
         const kmInput = document.getElementById('id_start_km');
-        const feedback = document.getElementById('km-feedback');
-        const loading = document.getElementById('loading-icon');
+        const loadingIndicator = document.getElementById('km-loading');
 
-        async function fetchLastKm() {
-            const vehicleId = vehicleSelect.value;
-            if (!vehicleId) return;
-
-            // Mostra loading
-            loading.classList.remove('hidden');
-            feedback.innerText = 'Buscando histórico...';
-
-            try {
-                const response = await fetch(`/operacoes/api/get-km/${vehicleId}/`);
-                if (response.ok) {
-                    const data = await response.json();
+        if (vehicleSelect && kmInput) {
+            vehicleSelect.addEventListener('change', function() {
+                const vehicleId = this.value;
+                if (vehicleId) {
+                    // Mostra loading
+                    if(loadingIndicator) loadingIndicator.classList.remove('hidden');
                     
-                    // Preenche o valor automaticamente
-                    kmInput.value = data.km;
-                    
-                    // Mostra mensagem de origem
-                    if (data.source === 'last_shift') {
-                        feedback.innerText = `🔄 Sugestão baseada no seu último plantão (${data.km} km)`;
-                    } else {
-                        feedback.innerText = `🆕 Primeira jornada! Sugerido KM do cadastro (${data.km} km)`;
-                    }
-                    
-                    // Efeito visual (piscar verde) para mostrar que atualizou
-                    kmInput.classList.add('ring-2', 'ring-green-500', 'transition-all');
-                    setTimeout(() => kmInput.classList.remove('ring-2', 'ring-green-500'), 1000);
+                    // Chama a API que criamos
+                    fetch(`/operacoes/api/get-km/${vehicleId}/`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.km) {
+                                kmInput.value = data.km;
+                                // Efeito visual de sucesso
+                                kmInput.classList.add('ring-2', 'ring-green-500');
+                                setTimeout(() => kmInput.classList.remove('ring-2', 'ring-green-500'), 1000);
+                            }
+                        })
+                        .catch(err => console.error('Erro ao buscar KM:', err))
+                        .finally(() => {
+                            if(loadingIndicator) loadingIndicator.classList.add('hidden');
+                        });
                 }
-            } catch (error) {
-                console.error('Erro ao buscar KM:', error);
-                feedback.innerText = '';
-            } finally {
-                loading.classList.add('hidden');
+            });
+
+            // Dispara no carregamento se já tiver veículo selecionado (ex: erro de validação)
+            if (vehicleSelect.value && !kmInput.value) {
+                vehicleSelect.dispatchEvent(new Event('change'));
             }
         }
-
-        // Busca ao carregar a página (se já tiver veículo selecionado)
-        if (vehicleSelect.value) {
-            fetchLastKm();
-        }
-
-        // Busca ao mudar o veículo
-        vehicleSelect.addEventListener('change', fetchLastKm);
     });
 </script>
 {% endblock %}

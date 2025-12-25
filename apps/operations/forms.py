@@ -58,7 +58,7 @@ class StartShiftForm(ValidationMixin, forms.ModelForm):
         self.fields["vehicle"].queryset = Vehicle.objects.filter(
             user=user, is_active=True
         )
-
+        
     def clean_start_km(self):
         return self.clean_km_field("start_km")
 

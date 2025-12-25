@@ -42,10 +42,16 @@ class StartShiftView(LoginRequiredMixin, CreateView):
         return super().dispatch(request, *args, **kwargs)
 
     def form_valid(self, form):
+        hoje = timezone.now().date()
+
+        if DailyRecord.objects.filter(user=self.request.user, date=hoje).exists():
+            form.add_error(None, "Você já abriu um plantão hoje! Verifique seu histórico.")
+            return self.form_invalid(form)
+
         form.instance.user = self.request.user
-        form.instance.date = timezone.now().date()
-        form.instance.is_active = True
-        messages.success(self.request, "Plantão iniciado! Boa jornada.")
+        form.instance.date = hoje
+        
+        messages.success(self.request, "Jornada iniciada! Bom trabalho.")
         return super().form_valid(form)
 
     def get_form_kwargs(self):
