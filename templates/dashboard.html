@@ -25,73 +25,93 @@
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
                     
-                    <form action="{% url 'shift_add_finance' 'income' %}" method="post" class="bg-white/10 backdrop-blur-sm p-4 rounded-xl border border-white/20 space-y-3">
-                        {% csrf_token %}
-                        <div class="flex items-center gap-2 mb-2">
-                            <div class="p-1 bg-green-500 rounded text-white">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
-                            </div>
-                            <span class="text-sm font-bold uppercase tracking-wider opacity-90">Registrar Ganho</span>
-                        </div>
+                    <form action="{% url 'shift_add_finance' 'income' %}" method="post" class="bg-white/10 backdrop-blur-sm p-4 rounded-xl border border-white/20 space-y-4">
+    {% csrf_token %}
+    
+    <div class="flex items-center gap-2">
+        <div class="p-1 bg-green-500 rounded text-white">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+        </div>
+        <span class="text-sm font-bold uppercase tracking-wider opacity-90">Registrar Ganho</span>
+    </div>
 
-                        <div class="flex gap-2 overflow-x-auto pb-2 custom-scrollbar">
-                            {% for cat in income_categories %}
-                            <label class="cursor-pointer">
-                                <input type="radio" name="category" value="{{ cat.id }}" {% if forloop.first %}checked{% endif %} class="peer sr-only">
-                                <span class="px-3 py-1 text-xs rounded-full bg-white/20 text-white peer-checked:ring-2 peer-checked:ring-white transition-all hover:bg-white/30 font-medium border border-transparent"
-                                      style="border-color: {{ cat.color }};">
-                                    {{ cat.name }}
-                                </span>
-                            </label>
-                            {% empty %}
-                                <a href="{% url 'category_create' %}" class="text-xs text-white underline opacity-70 hover:opacity-100 py-1">Criar Categoria +</a>
-                            {% endfor %}
-                        </div>
+    <div class="flex flex-wrap gap-2">
+        {% for cat in income_categories %}
+        <label class="cursor-pointer group">
+            <input type="radio" name="category" value="{{ cat.id }}" {% if forloop.first %}checked{% endif %} class="peer sr-only">
+            
+            <span class="inline-flex items-center px-3 py-1.5 rounded-lg text-white text-xs font-bold uppercase tracking-wide transition-all
+                         border border-white/20 shadow-sm
+                         peer-checked:opacity-100 peer-checked:ring-2 peer-checked:ring-white peer-checked:shadow-md peer-checked:scale-105
+                         opacity-60 hover:opacity-90 hover:scale-105"
+                  style="background-color: {{ cat.color }}; text-shadow: 0 1px 2px rgba(0,0,0,0.3);">
+                {{ cat.name }}
+            </span>
+        </label>
+        {% empty %}
+            <span class="text-xs text-white/70 italic py-1">Nenhuma categoria.</span>
+        {% endfor %}
+        
+        <a href="{% url 'category_create' %}" class="inline-flex items-center px-3 py-1.5 rounded-lg border border-dashed border-white/40 text-white/70 text-xs font-bold hover:bg-white/10 hover:text-white hover:border-white transition-colors">
+            + Nova
+        </a>
+    </div>
 
-                        <div class="flex gap-2">
-                            <input type="number" step="0.01" name="amount" placeholder="Valor (R$)" required
-                                class="w-1/2 bg-white/20 border-0 rounded-lg text-white placeholder-white/60 focus:ring-2 focus:ring-green-400 text-sm py-2 px-3">
-                            <input type="text" name="description" placeholder="Obs (Opcional)"
-                                class="w-1/2 bg-white/20 border-0 rounded-lg text-white placeholder-white/60 focus:ring-2 focus:ring-green-400 text-sm py-2 px-3">
-                        </div>
-                        <button type="submit" class="w-full bg-green-600 hover:bg-green-500 text-white py-2 rounded-lg text-sm font-bold shadow transition-colors">
-                            Adicionar Receita
-                        </button>
-                    </form>
+    <div class="flex gap-2">
+        <input type="number" step="0.01" name="amount" placeholder="Valor (R$)" required
+            class="w-1/2 bg-white/20 border-0 rounded-lg text-white placeholder-white/60 focus:ring-2 focus:ring-green-400 text-sm py-2 px-3 shadow-inner">
+        <input type="text" name="description" placeholder="Obs (Opcional)"
+            class="w-1/2 bg-white/20 border-0 rounded-lg text-white placeholder-white/60 focus:ring-2 focus:ring-green-400 text-sm py-2 px-3 shadow-inner">
+    </div>
 
-                    <form action="{% url 'shift_add_finance' 'cost' %}" method="post" class="bg-white/10 backdrop-blur-sm p-4 rounded-xl border border-white/20 space-y-3">
-                        {% csrf_token %}
-                        <div class="flex items-center gap-2 mb-2">
-                            <div class="p-1 bg-red-500 rounded text-white">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path></svg>
-                            </div>
-                            <span class="text-sm font-bold uppercase tracking-wider opacity-90">Registrar Despesa</span>
-                        </div>
+    <button type="submit" class="w-full bg-green-600 hover:bg-green-500 text-white py-2.5 rounded-lg text-sm font-bold shadow-lg shadow-black/20 transition-all hover:-translate-y-0.5 active:translate-y-0">
+        Adicionar Receita
+    </button>
+</form>
 
-                        <div class="flex gap-2 overflow-x-auto pb-2 custom-scrollbar">
-                            {% for cat in cost_categories %}
-                            <label class="cursor-pointer">
-                                <input type="radio" name="category" value="{{ cat.id }}" {% if forloop.first %}checked{% endif %} class="peer sr-only">
-                                <span class="px-3 py-1 text-xs rounded-full bg-white/20 text-white peer-checked:ring-2 peer-checked:ring-white transition-all hover:bg-white/30 font-medium border border-transparent"
-                                      style="border-color: {{ cat.color }};">
-                                    {{ cat.name }}
-                                </span>
-                            </label>
-                            {% empty %}
-                                <a href="{% url 'category_create' %}" class="text-xs text-white underline opacity-70 hover:opacity-100 py-1">Criar Categoria +</a>
-                            {% endfor %}
-                        </div>
+                    <form action="{% url 'shift_add_finance' 'cost' %}" method="post" class="bg-white/10 backdrop-blur-sm p-4 rounded-xl border border-white/20 space-y-4">
+    {% csrf_token %}
+    
+    <div class="flex items-center gap-2">
+        <div class="p-1 bg-red-500 rounded text-white">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path></svg>
+        </div>
+        <span class="text-sm font-bold uppercase tracking-wider opacity-90">Registrar Despesa</span>
+    </div>
 
-                        <div class="flex gap-2">
-                            <input type="number" step="0.01" name="amount" placeholder="Valor (R$)" required
-                                class="w-1/2 bg-white/20 border-0 rounded-lg text-white placeholder-white/60 focus:ring-2 focus:ring-red-400 text-sm py-2 px-3">
-                            <input type="text" name="description" placeholder="Obs (Opcional)"
-                                class="w-1/2 bg-white/20 border-0 rounded-lg text-white placeholder-white/60 focus:ring-2 focus:ring-red-400 text-sm py-2 px-3">
-                        </div>
-                        <button type="submit" class="w-full bg-red-600 hover:bg-red-500 text-white py-2 rounded-lg text-sm font-bold shadow transition-colors">
-                            Adicionar Despesa
-                        </button>
-                    </form>
+    <div class="flex flex-wrap gap-2">
+        {% for cat in cost_categories %}
+        <label class="cursor-pointer group">
+            <input type="radio" name="category" value="{{ cat.id }}" {% if forloop.first %}checked{% endif %} class="peer sr-only">
+            
+            <span class="inline-flex items-center px-3 py-1.5 rounded-lg text-white text-xs font-bold uppercase tracking-wide transition-all
+                         border border-white/20 shadow-sm
+                         peer-checked:opacity-100 peer-checked:ring-2 peer-checked:ring-white peer-checked:shadow-md peer-checked:scale-105
+                         opacity-60 hover:opacity-90 hover:scale-105"
+                  style="background-color: {{ cat.color }}; text-shadow: 0 1px 2px rgba(0,0,0,0.3);">
+                {{ cat.name }}
+            </span>
+        </label>
+        {% empty %}
+            <span class="text-xs text-white/70 italic py-1">Nenhuma categoria.</span>
+        {% endfor %}
+
+        <a href="{% url 'category_create' %}" class="inline-flex items-center px-3 py-1.5 rounded-lg border border-dashed border-white/40 text-white/70 text-xs font-bold hover:bg-white/10 hover:text-white hover:border-white transition-colors">
+            + Nova
+        </a>
+    </div>
+
+    <div class="flex gap-2">
+        <input type="number" step="0.01" name="amount" placeholder="Valor (R$)" required
+            class="w-1/2 bg-white/20 border-0 rounded-lg text-white placeholder-white/60 focus:ring-2 focus:ring-red-400 text-sm py-2 px-3 shadow-inner">
+        <input type="text" name="description" placeholder="Obs (Opcional)"
+            class="w-1/2 bg-white/20 border-0 rounded-lg text-white placeholder-white/60 focus:ring-2 focus:ring-red-400 text-sm py-2 px-3 shadow-inner">
+    </div>
+
+    <button type="submit" class="w-full bg-red-600 hover:bg-red-500 text-white py-2.5 rounded-lg text-sm font-bold shadow-lg shadow-black/20 transition-all hover:-translate-y-0.5 active:translate-y-0">
+        Adicionar Despesa
+    </button>
+</form>
                 </div>
 
                 <div class="mt-6 pt-4 border-t border-white/20 flex justify-between items-center">
