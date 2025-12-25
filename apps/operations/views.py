@@ -30,7 +30,7 @@ class StartShiftView(LoginRequiredMixin, CreateView):
     model = DailyRecord
     form_class = StartShiftForm
     template_name = "operations/shift_start.html"
-    success_url = reverse_lazy("home")
+    success_url = reverse_lazy("dashboard")
 
     def dispatch(self, request, *args, **kwargs):
         if DailyRecord.objects.filter(user=request.user, is_active=True).exists():
@@ -45,12 +45,14 @@ class StartShiftView(LoginRequiredMixin, CreateView):
         hoje = timezone.now().date()
 
         if DailyRecord.objects.filter(user=self.request.user, date=hoje).exists():
-            form.add_error(None, "Você já abriu um plantão hoje! Verifique seu histórico.")
+            form.add_error(
+                None, "Você já abriu um plantão hoje! Verifique seu histórico."
+            )
             return self.form_invalid(form)
 
         form.instance.user = self.request.user
         form.instance.date = hoje
-        
+
         messages.success(self.request, "Jornada iniciada! Bom trabalho.")
         return super().form_valid(form)
 
@@ -73,46 +75,6 @@ class EndShiftView(LoginRequiredMixin, UpdateView):
         form.instance.is_active = False
         messages.success(self.request, "Plantão encerrado com sucesso. Bom descanso!")
         return super().form_valid(form)
-
-
-class AddFinanceView(LoginRequiredMixin, View):
-    def post(self, request, type):
-        record = get_object_or_404(DailyRecord, user=request.user, is_active=True)
-
-        amount = request.POST.get("amount")
-        category_id = request.POST.get("category")
-        description = request.POST.get("description")
-
-        try:
-            amount = float(amount)
-            category = get_object_or_404(Category, id=category_id, user=request.user)
-        except (ValueError, TypeError):
-            messages.error(request, "Dados inválidos.")
-            return redirect("home")
-
-        Transaction.objects.create(
-            record=record,
-            type=type.upper(),
-            category=category,
-            amount=amount,
-            description=description,
-        )
-
-        from decimal import Decimal
-
-        if type == "income":
-            record.total_income += Decimal(str(amount))
-            messages.success(
-                request, f"Ganho de R$ {amount} registrado em {category.name}."
-            )
-        elif type == "cost":
-            record.total_cost += Decimal(str(amount))
-            messages.success(
-                request, f"Despesa de R$ {amount} registrada em {category.name}."
-            )
-
-        record.save()
-        return redirect("home")
 
 
 class DailyRecordListView(LoginRequiredMixin, ListView):
@@ -402,3 +364,53 @@ class TransactionDeleteView(LoginRequiredMixin, SuccessMessageMixin, DeleteView)
         record.save()
 
         return response
+
+
+class AddFinanceView(LoginRequiredMixin, View):
+    def post(self, request, type, *args, **kwargs):
+
+        active_shift = DailyRecord.objects.filter(
+            user=request.user, is_active=True
+        ).first()
+        if not active_shift:
+            messages.error(request, "Nenhum plantão ativo encontrado.")
+            return redirect("dashboard")
+
+        try:
+            category_id = request.POST.get("category")
+            amount = float(request.POST.get("amount").replace(",", "."))
+            description = request.POST.get("description")
+
+            trans_type = "INCOME" if type == "income" else "COST"
+
+            Transaction.objects.create(
+                record=active_shift,
+                category_id=category_id,
+                type=trans_type,
+                amount=amount,
+                description=description,
+            )
+
+            self.update_record_totals(active_shift)
+
+            messages.success(
+                request, f"{'Receita' if type == 'income' else 'Despesa'} registrada!"
+            )
+
+        except Exception as e:
+            messages.error(request, f"Erro ao registrar: {str(e)}")
+
+        return redirect("dashboard")
+
+    def update_record_totals(self, record):
+        incomes = (
+            record.transactions.filter(type="INCOME").aggregate(t=Sum("amount"))["t"]
+            or 0
+        )
+        costs = (
+            record.transactions.filter(type="COST").aggregate(t=Sum("amount"))["t"] or 0
+        )
+
+        record.total_income = incomes
+        record.total_cost = costs
+        record.save()

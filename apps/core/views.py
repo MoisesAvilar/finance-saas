@@ -14,6 +14,12 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         active_shift = DailyRecord.objects.filter(user=user, is_active=True).first()
         context["active_shift"] = active_shift
 
+        if active_shift:
+            context["income_categories"] = Category.objects.filter(
+                user=user, type="INCOME"
+            )
+            context["cost_categories"] = Category.objects.filter(user=user, type="COST")
+
         qs = DailyRecord.objects.filter(user=user)
         aggregates = qs.aggregate(
             total_inc=Sum("total_income"),
@@ -25,20 +31,15 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         cost = aggregates["total_cost"] or 0
         km = aggregates["total_km"] or 0
 
-        cost_per_km = (cost / km) if km > 0 else 0
-        income_per_km = (income / km) if km > 0 else 0
-
         context["kpis"] = {
             "income": income,
             "cost": cost,
             "profit": income - cost,
             "km": km,
-            "cost_per_km": cost_per_km,
-            "income_per_km": income_per_km,
+            "income_per_km": (income / km) if km > 0 else 0,
+            "cost_per_km": (cost / km) if km > 0 else 0,
         }
 
-        context["recent_records"] = qs.order_by("-date")[:5]
-        context['income_categories'] = Category.objects.filter(user=self.request.user, type="INCOME")
-        context['cost_categories'] = Category.objects.filter(user=self.request.user, type="COST")
+        context["recent_records"] = qs.filter(is_active=False).order_by("-date")[:5]
 
         return context

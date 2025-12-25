@@ -8,6 +8,7 @@ urlpatterns = [
 
     path('', DashboardView.as_view(), name='home'),
     path('', include('pwa.urls')),
+    path('painel/', DashboardView.as_view(), name='dashboard'),
 
     path('accounts/', include('django.contrib.auth.urls')),
     path('accounts/', include('accounts.urls')),
