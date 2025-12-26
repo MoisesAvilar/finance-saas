@@ -60,9 +60,29 @@
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16">
                 <div class="flex items-center">
-                    <a href="{% url 'dashboard' %}" class="flex items-center gap-2 font-bold text-xl text-brand-600 dark:text-brand-500">
-                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                        <span>DriverFinance</span>
+                    <a href="{% url 'home' %}" class="flex items-center gap-2 group" aria-label="Ir para a página inicial">
+                        <div 
+                            class="h-8 w-8 bg-brand-600 dark:bg-brand-400 transition-transform duration-300 group-hover:scale-110"
+                            style="
+                                mask-image: url('{% static 'images/driver finance icon.png' %}');
+                                -webkit-mask-image: url('{% static 'images/driver finance icon.png' %}');
+                                
+                                mask-size: contain;
+                                -webkit-mask-size: contain;
+                                
+                                mask-repeat: no-repeat;
+                                -webkit-mask-repeat: no-repeat;
+                                
+                                mask-position: center;
+                                -webkit-mask-position: center;
+                            "
+                            role="img"
+                            aria-label="Ícone DriverFinance"
+                        ></div>
+                        
+                        <span class="text-xl font-bold text-brand-600 dark:text-brand-400">
+                            DriverFinance
+                        </span>
                     </a>
                 </div>
                 
