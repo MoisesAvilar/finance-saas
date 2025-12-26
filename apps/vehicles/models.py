@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import Max
 from django.conf import settings
 from common.models import TimeStampedModel
 
