@@ -93,6 +93,8 @@ class Category(TimeStampedModel):
     color = models.CharField(
         "Cor (Hex)", max_length=7, default="#64748b"
     )
+    is_fuel = models.BooleanField("É Combustível?", default=False)
+    is_maintenance = models.BooleanField("É Manutenção?", default=False)
 
     class Meta:
         verbose_name = "Categoria"
@@ -120,6 +122,9 @@ class Transaction(TimeStampedModel):
 
     amount = models.DecimalField("Valor (R$)", max_digits=10, decimal_places=2)
     description = models.CharField("Descrição", max_length=100, blank=True, null=True)
+    liters = models.DecimalField("Litros (Combustível)", max_digits=6, decimal_places=2, null=True, blank=True)
+    next_due_km = models.PositiveIntegerField("Próxima Troca (Km)", null=True, blank=True)
+    actual_km = models.PositiveIntegerField("KM no Momento", null=True, blank=True)
 
     class Meta:
         verbose_name = "Transação"

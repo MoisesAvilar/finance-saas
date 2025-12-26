@@ -1,3 +1,4 @@
+import json
 from django.shortcuts import redirect, get_object_or_404
 from django.db.models import Sum
 from django.http import JsonResponse
@@ -321,6 +322,28 @@ class TransactionUpdateView(LoginRequiredMixin, SuccessMessageMixin, UpdateView)
         record.total_cost = costs
         record.save()
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        # Pega as categorias disponíveis no form
+        form = context['form']
+        categories = form.fields['category'].queryset
+        
+        # Cria um "Mapa" para o JavaScript ler
+        # Ex: { "1": {"is_fuel": true}, "5": {"is_maint": true} }
+        cat_map = {
+            c.id: {
+                'is_fuel': c.is_fuel, 
+                'is_maint': c.is_maintenance,
+                'name': c.name.lower()
+            }
+            for c in categories
+        }
+        
+        # Envia como JSON seguro para o HTML
+        context['category_map'] = json.dumps(cat_map)
+        return context
+
 
 class TransactionDeleteView(LoginRequiredMixin, SuccessMessageMixin, DeleteView):
     model = Transaction
@@ -368,7 +391,6 @@ class TransactionDeleteView(LoginRequiredMixin, SuccessMessageMixin, DeleteView)
 
 class AddFinanceView(LoginRequiredMixin, View):
     def post(self, request, type, *args, **kwargs):
-
         active_shift = DailyRecord.objects.filter(
             user=request.user, is_active=True
         ).first()
@@ -381,6 +403,25 @@ class AddFinanceView(LoginRequiredMixin, View):
             amount = float(request.POST.get("amount").replace(",", "."))
             description = request.POST.get("description")
 
+            liters = request.POST.get("liters")
+            next_due_km = request.POST.get("next_due_km")
+            actual_km = request.POST.get("actual_km")
+
+            if liters and liters.strip():
+                liters = float(liters.replace(",", "."))
+            else:
+                liters = None
+
+            if next_due_km and next_due_km.strip():
+                next_due_km = int(next_due_km)
+            else:
+                next_due_km = None
+
+            if actual_km and actual_km.strip():
+                actual_km = int(actual_km)
+            else:
+                actual_km = None
+
             trans_type = "INCOME" if type == "income" else "COST"
 
             Transaction.objects.create(
@@ -389,6 +430,9 @@ class AddFinanceView(LoginRequiredMixin, View):
                 type=trans_type,
                 amount=amount,
                 description=description,
+                liters=liters,
+                next_due_km=next_due_km,
+                actual_km=actual_km
             )
 
             self.update_record_totals(active_shift)

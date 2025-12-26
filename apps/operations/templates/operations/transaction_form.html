@@ -19,7 +19,42 @@
                 <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                     {{ form.category.label }}
                 </label>
-                {{ form.category }}
+                {{ form.category }} </div>
+
+            <div id="div_actual_km" class="hidden transition-all">
+                <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                    {{ form.actual_km.label }}
+                </label>
+                <div class="relative">
+                    <span class="absolute left-3 top-2 text-slate-500 text-xs font-bold">KM</span>
+                    <div class="[&>input]:pl-10">
+                        {{ form.actual_km }}
+                    </div>
+                </div>
+            </div>
+
+            <div id="div_liters" class="hidden transition-all">
+                <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                    {{ form.liters.label }}
+                </label>
+                <div class="relative">
+                    <span class="absolute left-3 top-2 text-slate-500 text-xs font-bold">L</span>
+                    <div class="[&>input]:pl-10">
+                        {{ form.liters }}
+                    </div>
+                </div>
+            </div>
+
+            <div id="div_next_km" class="hidden transition-all">
+                <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                    {{ form.next_due_km.label }}
+                </label>
+                <div class="relative">
+                    <span class="absolute left-3 top-2 text-slate-500 text-xs font-bold">KM</span>
+                    <div class="[&>input]:pl-10">
+                        {{ form.next_due_km }}
+                    </div>
+                </div>
             </div>
 
             <div>
@@ -55,4 +90,58 @@
         </form>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // 1. Recebe o Mapa do Backend (JSON)
+        const categoryMap = {{ category_map|safe }};
+        
+        // 2. Elementos
+        const categorySelect = document.getElementById('id_category'); // ID padrão do Django
+        const divActualKm = document.getElementById('div_actual_km');
+        const divLiters = document.getElementById('div_liters');
+        const divNextKm = document.getElementById('div_next_km');
+
+        function updateFields() {
+            const catId = categorySelect.value;
+            if (!catId || !categoryMap[catId]) {
+                // Se não tem categoria válida, esconde tudo
+                divActualKm.classList.add('hidden');
+                divLiters.classList.add('hidden');
+                divNextKm.classList.add('hidden');
+                return;
+            }
+
+            const data = categoryMap[catId];
+            const isFuel = data.is_fuel;
+            const isMaint = data.is_maint;
+            const name = data.name;
+
+            // --- Lógica KM Atual (Combustível OU Manutenção) ---
+            if (isFuel || isMaint || name.includes('abastec') || name.includes('manuten') || name.includes('oleo')) {
+                divActualKm.classList.remove('hidden');
+            } else {
+                divActualKm.classList.add('hidden');
+            }
+
+            // --- Lógica Litros (Só Combustível) ---
+            if (isFuel || name.includes('abastec') || name.includes('gasolina')) {
+                divLiters.classList.remove('hidden');
+            } else {
+                divLiters.classList.add('hidden');
+            }
+
+            // --- Lógica Próxima Troca (Só Manutenção) ---
+            if (isMaint || name.includes('manuten') || name.includes('oleo')) {
+                divNextKm.classList.remove('hidden');
+            } else {
+                divNextKm.classList.add('hidden');
+            }
+        }
+
+        // 3. Ouve mudanças e roda no início
+        categorySelect.addEventListener('change', updateFields);
+        updateFields(); // Executa ao carregar para mostrar os campos se já estiver preenchido
+    });
+</script>
 {% endblock %}

@@ -26,92 +26,129 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
                     
                     <form action="{% url 'shift_add_finance' 'income' %}" method="post" class="bg-white/10 backdrop-blur-sm p-4 rounded-xl border border-white/20 space-y-4">
-    {% csrf_token %}
-    
-    <div class="flex items-center gap-2">
-        <div class="p-1 bg-green-500 rounded text-white">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
-        </div>
-        <span class="text-sm font-bold uppercase tracking-wider opacity-90">Registrar Ganho</span>
-    </div>
+                        {% csrf_token %}
+                        
+                        <div class="flex items-center gap-2">
+                            <div class="p-1 bg-green-500 rounded text-white">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                            </div>
+                            <span class="text-sm font-bold uppercase tracking-wider opacity-90">Registrar Ganho</span>
+                        </div>
 
-    <div class="flex flex-wrap gap-2">
-        {% for cat in income_categories %}
-        <label class="cursor-pointer group">
-            <input type="radio" name="category" value="{{ cat.id }}" {% if forloop.first %}checked{% endif %} class="peer sr-only">
-            
-            <span class="inline-flex items-center px-3 py-1.5 rounded-lg text-white text-xs font-bold uppercase tracking-wide transition-all
-                         border border-white/20 shadow-sm
-                         peer-checked:opacity-100 peer-checked:ring-2 peer-checked:ring-white peer-checked:shadow-md peer-checked:scale-105
-                         opacity-60 hover:opacity-90 hover:scale-105"
-                  style="background-color: {{ cat.color }}; text-shadow: 0 1px 2px rgba(0,0,0,0.3);">
-                {{ cat.name }}
-            </span>
-        </label>
-        {% empty %}
-            <span class="text-xs text-white/70 italic py-1">Nenhuma categoria.</span>
-        {% endfor %}
-        
-        <a href="{% url 'category_create' %}" class="inline-flex items-center px-3 py-1.5 rounded-lg border border-dashed border-white/40 text-white/70 text-xs font-bold hover:bg-white/10 hover:text-white hover:border-white transition-colors">
-            + Nova
-        </a>
-    </div>
+                        <div class="flex flex-wrap gap-2">
+                            {% for cat in income_categories %}
+                            <label class="cursor-pointer group">
+                                <input type="radio" name="category" value="{{ cat.id }}" class="peer sr-only">
+                                
+                                <span class="inline-flex items-center px-3 py-1.5 rounded-lg text-white text-xs font-bold uppercase tracking-wide transition-all
+                                            border border-white/20 shadow-sm
+                                            peer-checked:opacity-100 peer-checked:ring-2 peer-checked:ring-white peer-checked:shadow-md peer-checked:scale-105
+                                            opacity-60 hover:opacity-90 hover:scale-105"
+                                    style="background-color: {{ cat.color }}; text-shadow: 0 1px 2px rgba(0,0,0,0.3);">
+                                    {{ cat.name }}
+                                </span>
+                            </label>
+                            {% empty %}
+                                <span class="text-xs text-white/70 italic py-1">Nenhuma categoria.</span>
+                            {% endfor %}
+                            
+                            <a href="{% url 'category_create' %}" class="inline-flex items-center px-3 py-1.5 rounded-lg border border-dashed border-white/40 text-white/70 text-xs font-bold hover:bg-white/10 hover:text-white hover:border-white transition-colors">
+                                + Nova
+                            </a>
+                        </div>
 
-    <div class="flex gap-2">
-        <input type="number" step="0.01" name="amount" placeholder="Valor (R$)" required
-            class="w-1/2 bg-white/20 border-0 rounded-lg text-white placeholder-white/60 focus:ring-2 focus:ring-green-400 text-sm py-2 px-3 shadow-inner">
-        <input type="text" name="description" placeholder="Obs (Opcional)"
-            class="w-1/2 bg-white/20 border-0 rounded-lg text-white placeholder-white/60 focus:ring-2 focus:ring-green-400 text-sm py-2 px-3 shadow-inner">
-    </div>
+                        <div class="flex gap-2">
+                            <input type="number" step="0.01" name="amount" placeholder="Valor (R$)" required
+                                class="w-1/2 bg-white/20 border-0 rounded-lg text-white placeholder-white/60 focus:ring-2 focus:ring-green-400 text-sm py-2 px-3 shadow-inner">
+                            <input type="text" name="description" placeholder="Obs (Opcional)"
+                                class="w-1/2 bg-white/20 border-0 rounded-lg text-white placeholder-white/60 focus:ring-2 focus:ring-green-400 text-sm py-2 px-3 shadow-inner">
+                        </div>
 
-    <button type="submit" class="w-full bg-green-600 hover:bg-green-500 text-white py-2.5 rounded-lg text-sm font-bold shadow-lg shadow-black/20 transition-all hover:-translate-y-0.5 active:translate-y-0">
-        Adicionar Receita
-    </button>
-</form>
+                        <button type="submit" class="w-full bg-green-600 hover:bg-green-500 text-white py-2.5 rounded-lg text-sm font-bold shadow-lg shadow-black/20 transition-all hover:-translate-y-0.5 active:translate-y-0">
+                            Adicionar Receita
+                        </button>
+                    </form>
 
                     <form action="{% url 'shift_add_finance' 'cost' %}" method="post" class="bg-white/10 backdrop-blur-sm p-4 rounded-xl border border-white/20 space-y-4">
-    {% csrf_token %}
-    
-    <div class="flex items-center gap-2">
-        <div class="p-1 bg-red-500 rounded text-white">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path></svg>
-        </div>
-        <span class="text-sm font-bold uppercase tracking-wider opacity-90">Registrar Despesa</span>
-    </div>
+                        {% csrf_token %}
+                        
+                        <div class="flex items-center gap-2">
+                            <div class="p-1 bg-red-500 rounded text-white">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path></svg>
+                            </div>
+                            <span class="text-sm font-bold uppercase tracking-wider opacity-90">Registrar Despesa</span>
+                        </div>
 
-    <div class="flex flex-wrap gap-2">
-        {% for cat in cost_categories %}
-        <label class="cursor-pointer group">
-            <input type="radio" name="category" value="{{ cat.id }}" {% if forloop.first %}checked{% endif %} class="peer sr-only">
-            
-            <span class="inline-flex items-center px-3 py-1.5 rounded-lg text-white text-xs font-bold uppercase tracking-wide transition-all
-                         border border-white/20 shadow-sm
-                         peer-checked:opacity-100 peer-checked:ring-2 peer-checked:ring-white peer-checked:shadow-md peer-checked:scale-105
-                         opacity-60 hover:opacity-90 hover:scale-105"
-                  style="background-color: {{ cat.color }}; text-shadow: 0 1px 2px rgba(0,0,0,0.3);">
-                {{ cat.name }}
-            </span>
-        </label>
-        {% empty %}
-            <span class="text-xs text-white/70 italic py-1">Nenhuma categoria.</span>
-        {% endfor %}
+                        <div class="flex flex-wrap gap-2" id="cost-categories-container">
+                            {% for cat in cost_categories %}
+                            <label class="cursor-pointer group">
+                                <input type="radio" name="category" value="{{ cat.id }}" 
+                                    data-name="{{ cat.name|lower }}" 
+                                    data-is-fuel="{{ cat.is_fuel|yesno:'true,false' }}" 
+                                    data-is-maint="{{ cat.is_maintenance|yesno:'true,false' }}"
+                                    onclick="checkCategory()"
+                                    class="peer sr-only cost-category-radio">
+                                
+                                <span class="inline-flex items-center px-3 py-1.5 rounded-lg text-white text-xs font-bold uppercase tracking-wide transition-all
+                                            border border-white/20 shadow-sm
+                                            peer-checked:opacity-100 peer-checked:ring-2 peer-checked:ring-white peer-checked:shadow-md
+                                            opacity-60 hover:opacity-90 hover:scale-105"
+                                    style="background-color: {{ cat.color }}; text-shadow: 0 1px 2px rgba(0,0,0,0.3);">
+                                    {{ cat.name }}
+                                </span>
+                            </label>
+                            {% empty %}
+                                <span class="text-xs text-white/70 italic py-1">Nenhuma categoria.</span>
+                            {% endfor %}
 
-        <a href="{% url 'category_create' %}" class="inline-flex items-center px-3 py-1.5 rounded-lg border border-dashed border-white/40 text-white/70 text-xs font-bold hover:bg-white/10 hover:text-white hover:border-white transition-colors">
-            + Nova
-        </a>
-    </div>
+                            <a href="{% url 'category_create' %}" class="inline-flex items-center px-3 py-1.5 rounded-lg border border-dashed border-white/40 text-white/70 text-xs font-bold hover:bg-white/10 hover:text-white hover:border-white transition-colors">
+                                + Nova
+                            </a>
+                        </div>
 
-    <div class="flex gap-2">
-        <input type="number" step="0.01" name="amount" placeholder="Valor (R$)" required
-            class="w-1/2 bg-white/20 border-0 rounded-lg text-white placeholder-white/60 focus:ring-2 focus:ring-red-400 text-sm py-2 px-3 shadow-inner">
-        <input type="text" name="description" placeholder="Obs (Opcional)"
-            class="w-1/2 bg-white/20 border-0 rounded-lg text-white placeholder-white/60 focus:ring-2 focus:ring-red-400 text-sm py-2 px-3 shadow-inner">
-    </div>
+                        <div id="field-current-km" class="hidden transition-all duration-300 mb-3">
+                            <div class="flex justify-between items-center mb-1">
+                                <label class="text-xs text-white/80 ml-1">Odômetro Agora</label>
+                                <span class="text-[10px] text-green-300 bg-green-900/30 px-2 py-0.5 rounded-full">
+                                    Sugestão: Início do dia
+                                </span>
+                            </div>
+                            <div class="relative">
+                                <input type="number" name="actual_km" value="{{ active_shift.start_km }}" 
+                                    class="w-full bg-white/20 border-2 border-dashed border-white/30 rounded-lg text-white font-bold placeholder-white/60 focus:ring-2 focus:ring-red-400 focus:border-white text-sm py-2 px-3 pl-8 shadow-inner">
+                                <span class="absolute left-3 top-2.5 text-white/60 text-sm">km</span>
+                            </div>
+                        </div>
+                        
+                        <div id="field-liters" class="hidden transition-all duration-300 mb-2">
+                            <label class="text-xs text-white/80 ml-1 mb-1 block">Quantos litros?</label>
+                            <div class="relative">
+                                <input type="number" step="0.01" name="liters" placeholder="Ex: 25.5" 
+                                    class="w-full bg-white/20 border-0 rounded-lg text-white placeholder-white/60 focus:ring-2 focus:ring-red-400 text-sm py-2 px-3 pl-8 shadow-inner">
+                                <span class="absolute left-3 top-2 text-white/60 text-sm">L</span>
+                            </div>
+                        </div>
 
-    <button type="submit" class="w-full bg-red-600 hover:bg-red-500 text-white py-2.5 rounded-lg text-sm font-bold shadow-lg shadow-black/20 transition-all hover:-translate-y-0.5 active:translate-y-0">
-        Adicionar Despesa
-    </button>
-</form>
+                        <div id="field-next-km" class="hidden transition-all duration-300 mb-2">
+                            <label class="text-xs text-white/80 ml-1 mb-1 block">Próxima troca em qual KM?</label>
+                            <div class="relative">
+                                <input type="number" name="next_due_km" placeholder="Ex: {{ active_shift.start_km|add:'5000' }}" 
+                                    class="w-full bg-white/20 border-0 rounded-lg text-white placeholder-white/60 focus:ring-2 focus:ring-red-400 text-sm py-2 px-3 pl-8 shadow-inner">
+                                <span class="absolute left-3 top-2 text-white/60 text-sm">km</span>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-2">
+                            <input type="number" step="0.01" name="amount" placeholder="Valor (R$)" required
+                                class="w-1/2 bg-white/20 border-0 rounded-lg text-white placeholder-white/60 focus:ring-2 focus:ring-red-400 text-sm py-2 px-3 shadow-inner">
+                            <input type="text" name="description" placeholder="Obs (Opcional)"
+                                class="w-1/2 bg-white/20 border-0 rounded-lg text-white placeholder-white/60 focus:ring-2 focus:ring-red-400 text-sm py-2 px-3 shadow-inner">
+                        </div>
+
+                        <button type="submit" class="w-full bg-red-600 hover:bg-red-500 text-white py-2.5 rounded-lg text-sm font-bold shadow-lg shadow-black/20 transition-all hover:-translate-y-0.5 active:translate-y-0">
+                            Adicionar Despesa
+                        </button>
+                    </form>
                 </div>
 
                 <div class="mt-6 pt-4 border-t border-white/20 flex justify-between items-center">
@@ -138,6 +175,59 @@
             </a>
         </div>
     {% endif %}
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+    <div class="bg-white dark:bg-slate-900 p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 flex items-center gap-4">
+        <div class="p-3 bg-blue-100 dark:bg-blue-900/30 text-blue-600 rounded-full">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+        </div>
+        <div>
+            <p class="text-sm font-medium text-slate-500 uppercase">Média de Consumo</p>
+            {% if active_shift.vehicle.fuel_average %}
+                <div class="flex items-baseline gap-1">
+                    <span class="text-2xl font-bold text-slate-900 dark:text-white">
+                        {{ active_shift.vehicle.fuel_average|floatformat:1 }}
+                    </span>
+                    <span class="text-sm text-slate-500">km/L</span>
+                </div>
+                <p class="text-xs text-green-500 font-medium">Baseado no último tanque</p>
+            {% else %}
+                <p class="text-sm text-slate-400 italic">Precisa de 2 abastecimentos</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="bg-white dark:bg-slate-900 p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 flex items-center gap-4">
+        {% with status=active_shift.vehicle.maintenance_status %}
+            {% if status %}
+                <div class="p-3 rounded-full 
+                    {% if status.status == 'danger' %}bg-red-100 text-red-600
+                    {% elif status.status == 'warning' %}bg-orange-100 text-orange-600
+                    {% else %}bg-green-100 text-green-600{% endif %}">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-slate-500 uppercase">Próxima Revisão</p>
+                    <p class="text-lg font-bold 
+                        {% if status.status == 'danger' %}text-red-600
+                        {% elif status.status == 'warning' %}text-orange-600
+                        {% else %}text-green-600{% endif %}">
+                        {{ status.msg }}
+                    </p>
+                </div>
+            {% else %}
+                <div class="p-3 bg-slate-100 text-slate-400 rounded-full">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-slate-500 uppercase">Manutenção</p>
+                    <p class="text-sm text-slate-400 italic">Nenhuma agendada</p>
+                </div>
+            {% endif %}
+        {% endwith %}
+    </div>
+</div>
 
     <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
         <div class="bg-white dark:bg-slate-900 p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800">
@@ -210,4 +300,68 @@
         </div>
     </div>
 </div>
+
+<script>
+    // Definimos a função globalmente para garantir que o HTML a encontre
+    function checkCategory() {
+        console.log("--- FUNÇÃO DISPARADA ---");
+        
+        // 1. Pega o radio marcado
+        const selected = document.querySelector('.cost-category-radio:checked');
+        if (!selected) {
+            console.log("Nenhum radio selecionado.");
+            return;
+        }
+
+        // 2. Pega os dados
+        const isFuel = selected.dataset.isFuel === 'true';
+        const isMaint = selected.dataset.isMaint === 'true';
+        const name = selected.dataset.name || '';
+        
+        console.log(`Selecionado: ${name} | Fuel: ${isFuel} | Maint: ${isMaint}`);
+
+        // 3. Pega os campos (Alvos)
+        const litersField = document.getElementById('field-liters');
+        const nextKmField = document.getElementById('field-next-km');
+        const currentKmField = document.getElementById('field-current-km');
+
+        // 4. Aplica a Lógica (Mostra/Esconde)
+        
+        // --- CAMPO KM ATUAL ---
+        if (currentKmField) {
+            if (isFuel || isMaint || name.includes('abastec') || name.includes('manuten') || name.includes('oleo') || name.includes('pneu')) {
+                currentKmField.classList.remove('hidden');
+                console.log(">> Exibindo KM Atual");
+            } else {
+                currentKmField.classList.add('hidden');
+            }
+        } else {
+            console.error("ERRO CRÍTICO: Não encontrei a div 'field-current-km'");
+        }
+
+        // --- CAMPO LITROS ---
+        if (litersField) {
+            if (isFuel || name.includes('abastec') || name.includes('gasolina') || name.includes('etanol')) {
+                litersField.classList.remove('hidden');
+                console.log(">> Exibindo Litros");
+            } else {
+                litersField.classList.add('hidden');
+            }
+        }
+
+        // --- CAMPO PRÓXIMA TROCA ---
+        if (nextKmField) {
+            if (isMaint || name.includes('manuten') || name.includes('oleo') || name.includes('pneu')) {
+                nextKmField.classList.remove('hidden');
+                console.log(">> Exibindo Próxima Troca");
+            } else {
+                nextKmField.classList.add('hidden');
+            }
+        }
+    }
+
+    // Roda uma vez ao carregar a página para ajustar o estado inicial
+    window.onload = checkCategory;
+</script>
+
 {% endblock %}

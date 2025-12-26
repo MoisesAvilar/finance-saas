@@ -58,7 +58,7 @@ class StartShiftForm(ValidationMixin, forms.ModelForm):
         self.fields["vehicle"].queryset = Vehicle.objects.filter(
             user=user, is_active=True
         )
-        
+
     def clean_start_km(self):
         return self.clean_km_field("start_km")
 
@@ -143,11 +143,11 @@ class DailyRecordForm(ValidationMixin, forms.ModelForm):
         }
         widgets = {
             "date": forms.DateInput(
-                format='%Y-%m-%d',
+                format="%Y-%m-%d",
                 attrs={
                     "type": "date",
                     "class": "w-full px-3 py-2 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-md",
-                }
+                },
             ),
             "vehicle": forms.Select(
                 attrs={
@@ -234,11 +234,11 @@ class MaintenanceForm(ValidationMixin, forms.ModelForm):
         }
         widgets = {
             "date": forms.DateInput(
-                format='%Y-%m-%d',
+                format="%Y-%m-%d",
                 attrs={
                     "type": "date",
                     "class": "w-full px-3 py-2 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-md",
-                }
+                },
             ),
             "vehicle": forms.Select(
                 attrs={
@@ -341,11 +341,17 @@ class TransactionForm(ValidationMixin, forms.ModelForm):
             "category",
             "amount",
             "description",
+            "actual_km",
+            "liters",
+            "next_due_km",
         ]
         labels = {
             "category": "Categoria",
             "amount": "Valor (R$)",
             "description": "Descrição",
+            "actual_km": "KM no Momento",
+            "liters": "Litros",
+            "next_due_km": "Próxima Troca (Km)",
         }
         widgets = {
             "category": forms.Select(
@@ -360,6 +366,23 @@ class TransactionForm(ValidationMixin, forms.ModelForm):
                 }
             ),
             "description": forms.TextInput(
+                attrs={
+                    "class": "w-full px-3 py-2 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-md"
+                }
+            ),
+            "actual_km": forms.NumberInput(
+                attrs={
+                    "class": "w-full px-3 py-2 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-md",
+                    "placeholder": "Ex: 50150",
+                }
+            ),
+            "liters": forms.NumberInput(
+                attrs={
+                    "step": "0.01",
+                    "class": "w-full px-3 py-2 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-md",
+                }
+            ),
+            "next_due_km": forms.NumberInput(
                 attrs={
                     "class": "w-full px-3 py-2 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-md"
                 }
