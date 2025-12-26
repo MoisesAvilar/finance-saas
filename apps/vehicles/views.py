@@ -10,8 +10,8 @@ from .forms import VehicleForm
 
 class VehicleListView(LoginRequiredMixin, ListView):
     model = Vehicle
-    template_name = 'vehicles/vehicle_list.html'
-    context_object_name = 'vehicles'
+    template_name = "vehicles/vehicle_list.html"
+    context_object_name = "vehicles"
 
     def get_queryset(self):
         return Vehicle.objects.filter(user=self.request.user)
@@ -19,7 +19,7 @@ class VehicleListView(LoginRequiredMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         ativos_count = self.object_list.filter(is_active=True).count()
-        context['can_add_vehicle'] = ativos_count < 1
+        context["can_add_vehicle"] = ativos_count < 1
         return context
 
 
@@ -31,12 +31,15 @@ class VehicleCreateView(LoginRequiredMixin, SuccessMessageMixin, CreateView):
     success_message = "Veículo adicionado à sua frota com sucesso!"
 
     def dispatch(self, request, *args, **kwargs):
-        veiculos_ativos = Vehicle.objects.filter(user=request.user, is_active=True).count()
-        
-        if veiculos_ativos >= 1:
-            messages.warning(request, "No plano gratuito você só pode ter 1 veículo ativo. Desative o atual para cadastrar outro.")
-            return redirect('vehicle_list')
-            
+        user_vehicle_count = Vehicle.objects.filter(user=request.user).count()
+
+        if not request.user.is_superuser and user_vehicle_count >= 1:
+            messages.warning(
+                request,
+                "⛔ No plano Grátis você pode ter apenas 1 veículo. Faça o Upgrade para gerenciar uma frota!",
+            )
+            return redirect("vehicle_list")
+
         return super().dispatch(request, *args, **kwargs)
 
     def form_valid(self, form):
@@ -57,14 +60,14 @@ class VehicleUpdateView(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
 
 class VehicleDeleteView(LoginRequiredMixin, SuccessMessageMixin, DeleteView):
     model = Vehicle
-    template_name = 'generics/confirm_delete.html'
-    success_url = reverse_lazy('vehicle_list')
+    template_name = "generics/confirm_delete.html"
+    success_url = reverse_lazy("vehicle_list")
     success_message = "Veículo removido com sucesso."
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['title'] = "Excluir Veículo"
-        context['cancel_url'] = reverse_lazy('vehicle_list')
+        context["title"] = "Excluir Veículo"
+        context["cancel_url"] = reverse_lazy("vehicle_list")
         return context
 
     def delete(self, request, *args, **kwargs):

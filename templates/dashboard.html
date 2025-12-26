@@ -119,56 +119,100 @@
                         <span class="block opacity-70">Receita: R$ {{ active_shift.total_income }}</span>
                         <span class="block opacity-70">Custos: R$ {{ active_shift.total_cost }}</span>
                     </div>
-                    <a href="{% url 'shift_end' %}" class="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-lg transition-transform active:scale-95">Encerrar Plantão</a>
+
+                    <div class="flex items-center gap-3">
+                        <a href="{% url 'dailyrecord_delete' active_shift.pk %}" 
+                        class="text-white/60 hover:text-white text-xs font-medium px-2 py-2 transition-colors"
+                        title="Excluir este plantão (caso tenha iniciado por engano)">
+                            Cancelar
+                        </a>
+
+                        <a href="{% url 'shift_end' %}" 
+                        class="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-lg transition-transform active:scale-95 flex items-center gap-2">
+                            <span>Encerrar Plantão</span>
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            
-            <div class="bg-white dark:bg-slate-900 p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 flex items-center gap-4">
-                <div class="p-3 bg-blue-100 dark:bg-blue-900/30 text-blue-600 rounded-full">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                </div>
-                <div>
-                    <p class="text-sm font-medium text-slate-500 uppercase">Média Atual</p>
-                    {% if active_shift.vehicle.fuel_average %}
-                        <div class="flex items-baseline gap-1">
-                            <span class="text-2xl font-bold text-slate-900 dark:text-white">{{ active_shift.vehicle.fuel_average|floatformat:1 }}</span>
-                            <span class="text-sm text-slate-500">km/L</span>
+        {% with is_pro=request.user.is_superuser %}
+        
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                
+                <div class="relative bg-white dark:bg-slate-900 p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 flex items-center gap-4 overflow-hidden group">
+                    
+                    <div class="flex items-center gap-4 w-full transition-all duration-300 {% if not is_pro %}blur-sm opacity-50 select-none{% endif %}">
+                        <div class="p-3 bg-blue-100 dark:bg-blue-900/30 text-blue-600 rounded-full">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                         </div>
-                        <p class="text-xs text-green-500 font-medium">Baseado no último tanque</p>
-                    {% else %}
-                        <p class="text-sm text-slate-400 italic">Calculando...</p>
-                        <p class="text-[10px] text-slate-500">(Requer 2 abastecimentos)</p>
-                    {% endif %}
-                </div>
-            </div>
+                        <div>
+                            <p class="text-sm font-medium text-slate-500 uppercase">Média Atual</p>
+                            {% if active_shift.vehicle.fuel_average %}
+                                <div class="flex items-baseline gap-1">
+                                    <span class="text-2xl font-bold text-slate-900 dark:text-white">{{ active_shift.vehicle.fuel_average|floatformat:1 }}</span>
+                                    <span class="text-sm text-slate-500">km/L</span>
+                                </div>
+                                <p class="text-xs text-green-500 font-medium">Baseado no último tanque</p>
+                            {% else %}
+                                <p class="text-sm text-slate-400 italic">Calculando...</p>
+                                <p class="text-[10px] text-slate-500">(Requer 2 abastecimentos)</p>
+                            {% endif %}
+                        </div>
+                    </div>
 
-            <div class="bg-white dark:bg-slate-900 p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 flex items-center gap-4">
-                {% with status=active_shift.vehicle.maintenance_status %}
-                    {% if status %}
-                        <div class="p-3 rounded-full {% if status.status == 'danger' %}bg-red-100 text-red-600{% elif status.status == 'warning' %}bg-orange-100 text-orange-600{% else %}bg-green-100 text-green-600{% endif %}">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                    {% if not is_pro %}
+                    <div class="absolute inset-0 flex flex-col items-center justify-center z-10 hover:bg-black/5 transition-colors cursor-pointer">
+                        <div class="bg-white dark:bg-slate-800 p-2 rounded-full shadow-lg mb-1">
+                            <svg class="w-5 h-5 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
                         </div>
-                        <div>
-                            <p class="text-sm font-medium text-slate-500 uppercase">Revisão</p>
-                            <p class="text-lg font-bold {% if status.status == 'danger' %}text-red-600{% elif status.status == 'warning' %}text-orange-600{% else %}text-green-600{% endif %}">
-                                {{ status.msg }}
-                            </p>
-                        </div>
-                    {% else %}
-                        <div class="p-3 bg-slate-100 text-slate-400 rounded-full">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
-                        </div>
-                        <div>
-                            <p class="text-sm font-medium text-slate-500 uppercase">Manutenção</p>
-                            <p class="text-sm text-slate-400 italic">Tudo em dia</p>
-                        </div>
+                        <span class="text-xs font-bold text-slate-900 dark:text-white bg-white/90 dark:bg-slate-800/90 px-2 py-1 rounded shadow-sm">
+                            Recurso PRO
+                        </span>
+                    </div>
                     {% endif %}
-                {% endwith %}
+                </div>
+
+                <div class="relative bg-white dark:bg-slate-900 p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 flex items-center gap-4 overflow-hidden group">
+                    
+                    <div class="flex items-center gap-4 w-full transition-all duration-300 {% if not is_pro %}blur-sm opacity-50 select-none{% endif %}">
+                        {% with status=active_shift.vehicle.maintenance_status %}
+                            {% if status %}
+                                <div class="p-3 rounded-full {% if status.status == 'danger' %}bg-red-100 text-red-600{% elif status.status == 'warning' %}bg-orange-100 text-orange-600{% else %}bg-green-100 text-green-600{% endif %}">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-medium text-slate-500 uppercase">Revisão</p>
+                                    <p class="text-lg font-bold {% if status.status == 'danger' %}text-red-600{% elif status.status == 'warning' %}text-orange-600{% else %}text-green-600{% endif %}">
+                                        {{ status.msg }}
+                                    </p>
+                                </div>
+                            {% else %}
+                                <div class="p-3 bg-slate-100 text-slate-400 rounded-full">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-medium text-slate-500 uppercase">Manutenção</p>
+                                    <p class="text-sm text-slate-400 italic">Tudo em dia</p>
+                                </div>
+                            {% endif %}
+                        {% endwith %}
+                    </div>
+
+                    {% if not is_pro %}
+                    <div class="absolute inset-0 flex flex-col items-center justify-center z-10 hover:bg-black/5 transition-colors cursor-pointer">
+                        <div class="bg-white dark:bg-slate-800 p-2 rounded-full shadow-lg mb-1">
+                            <svg class="w-5 h-5 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                        </div>
+                        <span class="text-xs font-bold text-slate-900 dark:text-white bg-white/90 dark:bg-slate-800/90 px-2 py-1 rounded shadow-sm">
+                            Recurso PRO
+                        </span>
+                    </div>
+                    {% endif %}
+                </div>
             </div>
-        </div>
+        {% endwith %}
 
     {% else %}
         <div class="bg-white dark:bg-slate-900 p-8 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 text-center">
