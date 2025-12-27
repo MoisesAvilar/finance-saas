@@ -4,6 +4,10 @@ from django.db.models import Sum, F
 from operations.models import DailyRecord, Category
 
 
+class PricingView(TemplateView):
+    template_name = "core/pricing.html"
+
+
 class DashboardView(LoginRequiredMixin, TemplateView):
     template_name = "dashboard.html"
 

@@ -1,0 +1,156 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="py-10 max-w-6xl mx-auto">
+    
+    <div class="text-center mb-12">
+        {% if user.is_pro %}
+            <span class="inline-block py-1 px-3 rounded-full bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300 text-xs font-bold uppercase tracking-wider mb-4">
+                Membro VIP
+            </span>
+            <h1 class="text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white mb-4">
+                Sua assinatura está ativa 🚀
+            </h1>
+            <p class="text-lg text-slate-500 dark:text-slate-400 max-w-2xl mx-auto">
+                Você tem acesso ilimitado a todos os recursos profissionais do DriverFinance.
+            </p>
+        {% else %}
+            <h1 class="text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white mb-4">
+                Invista na sua carreira profissional
+            </h1>
+            <p class="text-lg text-slate-500 dark:text-slate-400 max-w-2xl mx-auto">
+                Deixe de ser amador. Tenha o controle total da sua frota, histórico completo e relatórios contábeis.
+            </p>
+        {% endif %}
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+        
+        <div class="bg-white dark:bg-slate-900 rounded-2xl p-8 shadow-sm border border-slate-200 dark:border-slate-800 relative transition-all duration-300 {% if user.is_pro %}opacity-50 grayscale hover:grayscale-0 hover:opacity-100{% endif %}">
+            
+            <h3 class="text-lg font-medium text-slate-500 uppercase tracking-wide">Iniciante</h3>
+            <div class="mt-4 flex items-baseline text-slate-900 dark:text-white">
+                <span class="text-5xl font-extrabold tracking-tight">R$ 0</span>
+                <span class="ml-1 text-xl font-semibold text-slate-500">/mês</span>
+            </div>
+            <p class="mt-2 text-slate-500">Para quem está começando a organizar as contas.</p>
+
+            <ul class="mt-8 space-y-4">
+                <li class="flex items-center">
+                    <svg class="flex-shrink-0 w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                    <span class="ml-3 text-slate-700 dark:text-slate-300">Registro de Ganhos/Despesas</span>
+                </li>
+                <li class="flex items-center">
+                    <svg class="flex-shrink-0 w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                    <span class="ml-3 text-slate-700 dark:text-slate-300">Gráficos Básicos</span>
+                </li>
+                <li class="flex items-center opacity-75">
+                    <svg class="flex-shrink-0 w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                    <span class="ml-3 text-slate-500">Apenas 1 Veículo</span>
+                </li>
+                <li class="flex items-center opacity-75">
+                    <svg class="flex-shrink-0 w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <span class="ml-3 text-slate-500">Histórico de 30 dias</span>
+                </li>
+            </ul>
+
+            <div class="mt-8">
+                {% if not user.is_pro %}
+                    <button disabled class="block w-full bg-slate-100 dark:bg-slate-800 text-slate-500 font-bold py-3 px-4 rounded-xl text-center cursor-default border border-slate-200 dark:border-slate-700">
+                        Seu Plano Atual
+                    </button>
+                {% else %}
+                    <button disabled class="block w-full bg-slate-100 dark:bg-slate-800 text-slate-400 font-bold py-3 px-4 rounded-xl text-center cursor-not-allowed">
+                        Plano Básico
+                    </button>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="bg-slate-900 dark:bg-black rounded-2xl p-8 shadow-2xl border-2 {% if user.is_pro %}border-green-500{% else %}border-blue-500{% endif %} relative transform md:-translate-y-4">
+            
+            <div class="absolute top-0 right-0 -mt-3 mr-3">
+                {% if user.is_pro %}
+                    <span class="bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide shadow-lg flex items-center gap-1">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        Ativo
+                    </span>
+                {% else %}
+                    <span class="bg-gradient-to-r from-blue-500 to-cyan-500 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide shadow-lg">
+                        Recomendado
+                    </span>
+                {% endif %}
+            </div>
+
+            <h3 class="text-lg font-medium {% if user.is_pro %}text-green-400{% else %}text-blue-400{% endif %} uppercase tracking-wide">Profissional</h3>
+            <div class="mt-4 flex items-baseline text-white">
+                <span class="text-5xl font-extrabold tracking-tight">R$ 19,90</span>
+                <span class="ml-1 text-xl font-semibold text-slate-400">/mês</span>
+            </div>
+            <p class="mt-2 text-slate-400">Tudo o que você precisa para maximizar seus lucros.</p>
+
+            <ul class="mt-8 space-y-4">
+                <li class="flex items-center">
+                    <div class="flex-shrink-0 w-5 h-5 {% if user.is_pro %}bg-green-500{% else %}bg-blue-500{% endif %} rounded-full flex items-center justify-center">
+                        <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                    </div>
+                    <span class="ml-3 text-white font-medium">Veículos Ilimitados</span>
+                </li>
+                <li class="flex items-center">
+                    <div class="flex-shrink-0 w-5 h-5 {% if user.is_pro %}bg-green-500{% else %}bg-blue-500{% endif %} rounded-full flex items-center justify-center">
+                        <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                    </div>
+                    <span class="ml-3 text-white font-medium">Histórico Completo (Túnel do Tempo)</span>
+                </li>
+                <li class="flex items-center">
+                    <div class="flex-shrink-0 w-5 h-5 {% if user.is_pro %}bg-green-500{% else %}bg-blue-500{% endif %} rounded-full flex items-center justify-center">
+                        <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                    </div>
+                    <span class="ml-3 text-white">Exportação Excel/Contabilidade</span>
+                </li>
+                <li class="flex items-center">
+                    <div class="flex-shrink-0 w-5 h-5 {% if user.is_pro %}bg-green-500{% else %}bg-blue-500{% endif %} rounded-full flex items-center justify-center">
+                        <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                    </div>
+                    <span class="ml-3 text-white">Alertas de Troca de Óleo</span>
+                </li>
+            </ul>
+
+            <div class="mt-8">
+                {% if user.is_pro %}
+                    <div class="w-full bg-green-900/30 border border-green-500/50 text-green-400 font-bold py-4 px-4 rounded-xl text-center flex flex-col items-center justify-center">
+                        <div class="flex items-center gap-2 mb-1">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            <span>Plano Ativo</span>
+                        </div>
+                        {% if user.pro_expiry_date %}
+                            <p class="text-xs text-green-300/70 font-normal">
+                                Renovação em {{ user.pro_expiry_date|date:"d/m/Y" }}
+                            </p>
+                        {% endif %}
+                    </div>
+                {% else %}
+                    <button onclick="alert('Integração de pagamento em breve! Fale com o suporte para upgrade manual.')" class="block w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 px-4 rounded-xl text-center transition-all shadow-lg shadow-blue-500/30 hover:-translate-y-1">
+                        Assinar Agora
+                    </button>
+                    <p class="text-xs text-center text-slate-500 mt-3">Cancele quando quiser. Sem fidelidade.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-20 border-t border-slate-200 dark:border-slate-800 pt-10">
+        <h3 class="text-xl font-bold text-center text-slate-900 dark:text-white mb-8">Dúvidas Frequentes</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            <div>
+                <h4 class="font-bold text-slate-900 dark:text-white">Posso cancelar depois?</h4>
+                <p class="text-slate-500 dark:text-slate-400 text-sm mt-1">Sim! O plano é mensal, você pode cancelar a qualquer momento sem multas.</p>
+            </div>
+            <div>
+                <h4 class="font-bold text-slate-900 dark:text-white">Como funciona o pagamento?</h4>
+                <p class="text-slate-500 dark:text-slate-400 text-sm mt-1">Aceitamos Cartão de Crédito e PIX. O acesso é liberado na hora.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

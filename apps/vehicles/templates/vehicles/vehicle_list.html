@@ -3,18 +3,34 @@
 {% block content %}
 <div class="max-w-5xl mx-auto space-y-6">
     
-    <div class="flex justify-between items-center">
-        <h1 class="text-2xl font-bold text-slate-900 dark:text-white">Minha Frota</h1>
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-900 dark:text-white">Minha Frota</h1>
+            <p class="text-slate-500 dark:text-slate-400">
+                {% if user.is_pro %}
+                    Veículos ilimitados (PRO)
+                {% else %}
+                    Você está usando {{ vehicle_count }}/1 veículo (Grátis)
+                {% endif %}
+            </p>
+        </div>
+        
         {% if can_add_vehicle %}
-        <a href="{% url 'vehicle_create' %}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-sm transition-colors flex items-center gap-2">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-            Novo Veículo
-        </a>
+            <a href="{% url 'vehicle_create' %}" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2 shadow-sm">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                <span>Novo Veículo</span>
+            </a>
+        {% else %}
+            <a href="{% url 'pricing' %}" class="w-full sm:w-auto bg-amber-100 hover:bg-amber-200 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 dark:hover:bg-amber-900/50 font-medium py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2 border border-amber-200 dark:border-amber-800">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                <span>Aumentar Limite (PRO)</span>
+            </a>
         {% endif %}
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {% for vehicle in object_list %} <div class="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden hover:border-blue-300 dark:hover:border-blue-700 transition-colors">
+        {% for vehicle in object_list %} 
+            <div class="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden hover:border-blue-300 dark:hover:border-blue-700 transition-colors">
                 
                 <div class="p-5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-start">
                     <div class="flex items-center gap-3">
@@ -31,29 +47,43 @@
                     </span>
                 </div>
 
-                <div class="grid grid-cols-2 divide-x divide-slate-100 dark:divide-slate-800 bg-slate-50/50 dark:bg-slate-800/20">
+                <div class="relative bg-slate-50/50 dark:bg-slate-800/20">
                     
-                    <div class="p-4 text-center">
-                        <p class="text-xs text-slate-500 uppercase tracking-wide mb-1">Consumo Médio</p>
-                        {% if vehicle.fuel_average %}
-                            <p class="text-xl font-bold text-slate-900 dark:text-white">{{ vehicle.fuel_average|floatformat:1 }} <span class="text-sm font-normal text-slate-500">km/L</span></p>
-                        {% else %}
-                            <p class="text-sm text-slate-400 italic">--</p>
-                        {% endif %}
+                    <div class="grid grid-cols-2 divide-x divide-slate-100 dark:divide-slate-800 {% if not user.is_pro %}blur-sm opacity-60 select-none{% endif %}">
+                        
+                        <div class="p-4 text-center">
+                            <p class="text-xs text-slate-500 uppercase tracking-wide mb-1">Consumo Médio</p>
+                            {% if vehicle.fuel_average %}
+                                <p class="text-xl font-bold text-slate-900 dark:text-white">{{ vehicle.fuel_average|floatformat:1 }} <span class="text-sm font-normal text-slate-500">km/L</span></p>
+                            {% else %}
+                                <p class="text-sm text-slate-400 italic">--</p>
+                            {% endif %}
+                        </div>
+
+                        <div class="p-4 text-center">
+                            <p class="text-xs text-slate-500 uppercase tracking-wide mb-1">Próxima Revisão</p>
+                            {% with status=vehicle.maintenance_status %}
+                                {% if status %}
+                                    <p class="text-sm font-bold {% if status.status == 'danger' %}text-red-600{% elif status.status == 'warning' %}text-orange-600{% else %}text-green-600{% endif %}">
+                                        {{ status.msg }}
+                                    </p>
+                                {% else %}
+                                    <p class="text-sm text-slate-400 italic">Sem agendamento</p>
+                                {% endif %}
+                            {% endwith %}
+                        </div>
                     </div>
 
-                    <div class="p-4 text-center">
-                        <p class="text-xs text-slate-500 uppercase tracking-wide mb-1">Próxima Revisão</p>
-                        {% with status=vehicle.maintenance_status %}
-                            {% if status %}
-                                <p class="text-sm font-bold {% if status.status == 'danger' %}text-red-600{% elif status.status == 'warning' %}text-orange-600{% else %}text-green-600{% endif %}">
-                                    {{ status.msg }}
-                                </p>
-                            {% else %}
-                                <p class="text-sm text-slate-400 italic">Sem agendamento</p>
-                            {% endif %}
-                        {% endwith %}
-                    </div>
+                    {% if not user.is_pro %}
+                    <a href="{% url 'pricing' %}" class="absolute inset-0 flex flex-col items-center justify-center z-10 hover:bg-white/10 dark:hover:bg-black/10 transition-colors group" title="Clique para desbloquear">
+                        <div class="bg-white dark:bg-slate-800 p-1.5 rounded-full shadow-sm mb-1 group-hover:scale-110 transition-transform">
+                            <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                        </div>
+                        <span class="text-[10px] font-bold text-slate-900 dark:text-white bg-white/90 dark:bg-slate-800/90 px-2 py-0.5 rounded shadow-sm border border-slate-200 dark:border-slate-700">
+                            Desbloquear (PRO)
+                        </span>
+                    </a>
+                    {% endif %}
                 </div>
 
                 <div class="p-4 flex justify-between items-center text-sm border-t border-slate-100 dark:border-slate-800">

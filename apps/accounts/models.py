@@ -1,17 +1,30 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.utils import timezone
 
 
 class CustomUser(AbstractUser):
-    is_pro = models.BooleanField(
-        "Usuário PRO",
-        default=False,
-        help_text="Marque para liberar funcionalidades premium.",
-    )
+    is_pro_legacy = models.BooleanField("PRO Manual (Legado)", default=False)
 
+    pro_expiry_date = models.DateField(
+        "Expira em",
+        null=True,
+        blank=True,
+        help_text="O usuário é PRO até esta data (inclusive).",
+    )
 
     def __str__(self):
         return self.username
+
+    @property
+    def is_pro(self):
+        if self.is_superuser:
+            return True
+
+        if self.pro_expiry_date:
+            return self.pro_expiry_date >= timezone.now().date()
+
+        return self.is_pro_legacy
 
     @property
     def plan_name(self):

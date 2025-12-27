@@ -11,15 +11,22 @@ from .forms import VehicleForm
 class VehicleListView(LoginRequiredMixin, ListView):
     model = Vehicle
     template_name = "vehicles/vehicle_list.html"
-    context_object_name = "vehicles"
 
     def get_queryset(self):
         return Vehicle.objects.filter(user=self.request.user)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        ativos_count = self.object_list.filter(is_active=True).count()
-        context["can_add_vehicle"] = ativos_count < 1
+        user = self.request.user
+        count = self.get_queryset().count()
+
+        if user.is_pro:
+            can_add = True
+        else:
+            can_add = count < 1
+
+        context["can_add_vehicle"] = can_add
+        context["vehicle_count"] = count
         return context
 
 
@@ -28,17 +35,17 @@ class VehicleCreateView(LoginRequiredMixin, SuccessMessageMixin, CreateView):
     form_class = VehicleForm
     template_name = "vehicles/vehicle_form.html"
     success_url = reverse_lazy("vehicle_list")
-    success_message = "Veículo adicionado à sua frota com sucesso!"
+    success_message = "Veículo cadastrado com sucesso!"
 
     def dispatch(self, request, *args, **kwargs):
-        user_vehicle_count = Vehicle.objects.filter(user=request.user).count()
-
-        if not request.user.is_superuser and user_vehicle_count >= 1:
-            messages.warning(
-                request,
-                "⛔ No plano Grátis você pode ter apenas 1 veículo. Faça o Upgrade para gerenciar uma frota!",
-            )
-            return redirect("vehicle_list")
+        if not request.user.is_pro:
+            count = Vehicle.objects.filter(user=request.user).count()
+            if count >= 1:
+                messages.warning(
+                    request,
+                    "🔒 Limite atingido! No plano Grátis você pode ter apenas 1 veículo ativo.",
+                )
+                return redirect("vehicle_list")
 
         return super().dispatch(request, *args, **kwargs)
 

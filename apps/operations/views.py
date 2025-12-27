@@ -4,6 +4,7 @@ from django.db.models import Sum
 from django.http import JsonResponse
 from django.urls import reverse_lazy
 from django.utils import timezone
+from datetime import timedelta
 from django.views import View
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.messages.views import SuccessMessageMixin
@@ -82,10 +83,30 @@ class DailyRecordListView(LoginRequiredMixin, ListView):
     model = DailyRecord
     template_name = "operations/dailyrecord_list.html"
     context_object_name = "records"
-    paginate_by = 10
+    paginate_by = 30
 
     def get_queryset(self):
-        return DailyRecord.objects.filter(user=self.request.user).order_by("-date")
+        qs = DailyRecord.objects.filter(user=self.request.user).order_by("-date")
+
+        if not self.request.user.is_pro:
+            limit_date = timezone.now().date() - timedelta(days=30)
+            qs = qs.filter(date__gte=limit_date)
+
+        return qs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        if not self.request.user.is_pro:
+            limit_date = timezone.now().date() - timedelta(days=30)
+            hidden_count = DailyRecord.objects.filter(
+                user=self.request.user, date__lt=limit_date
+            ).count()
+
+            context["hidden_records_count"] = hidden_count
+            context["days_limit"] = 30
+
+        return context
 
 
 class DailyRecordUpdateView(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
@@ -324,24 +345,24 @@ class TransactionUpdateView(LoginRequiredMixin, SuccessMessageMixin, UpdateView)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        
+
         # Pega as categorias disponíveis no form
-        form = context['form']
-        categories = form.fields['category'].queryset
-        
+        form = context["form"]
+        categories = form.fields["category"].queryset
+
         # Cria um "Mapa" para o JavaScript ler
         # Ex: { "1": {"is_fuel": true}, "5": {"is_maint": true} }
         cat_map = {
             c.id: {
-                'is_fuel': c.is_fuel, 
-                'is_maint': c.is_maintenance,
-                'name': c.name.lower()
+                "is_fuel": c.is_fuel,
+                "is_maint": c.is_maintenance,
+                "name": c.name.lower(),
             }
             for c in categories
         }
-        
+
         # Envia como JSON seguro para o HTML
-        context['category_map'] = json.dumps(cat_map)
+        context["category_map"] = json.dumps(cat_map)
         return context
 
 
@@ -432,7 +453,7 @@ class AddFinanceView(LoginRequiredMixin, View):
                 description=description,
                 liters=liters,
                 next_due_km=next_due_km,
-                actual_km=actual_km
+                actual_km=actual_km,
             )
 
             self.update_record_totals(active_shift)
