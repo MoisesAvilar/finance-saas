@@ -3,6 +3,8 @@ from django.urls import path, include
 from core.views import DashboardView
 from accounts.views import DeleteAccountView
 from django.views.generic import TemplateView
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -24,5 +26,11 @@ urlpatterns = [
     path('termos/', TemplateView.as_view(template_name='legal/terms.html'), name='terms'),
     path('ajuda/', TemplateView.as_view(template_name='support/help.html'), name='help'),
 
+    # Common app URLs
+    path('common/', include('common.urls')),
+
     path('perfil/excluir/', DeleteAccountView.as_view(), name='account_delete'),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

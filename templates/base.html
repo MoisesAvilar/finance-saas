@@ -66,13 +66,10 @@
                             style="
                                 mask-image: url('{% static 'images/driver finance icon.png' %}');
                                 -webkit-mask-image: url('{% static 'images/driver finance icon.png' %}');
-                                
                                 mask-size: contain;
                                 -webkit-mask-size: contain;
-                                
                                 mask-repeat: no-repeat;
                                 -webkit-mask-repeat: no-repeat;
-                                
                                 mask-position: center;
                                 -webkit-mask-position: center;
                             "
@@ -173,10 +170,27 @@
         </div>
     </nav>
 
-    <div id="toast-container" class="fixed bottom-5 right-5 left-5 md:top-5 md:right-5 md:left-auto md:bottom-auto z-50 flex flex-col gap-2 pointer-events-none">
-        </div>
+    <div id="toast-container" class="fixed top-4 right-4 z-50 flex flex-col gap-2 pointer-events-none w-full max-w-sm px-4 md:px-0 md:w-auto"></div>
 
     <main class="flex-grow max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        {% if banner_top %}
+        <div class="mb-8 w-full rounded-xl overflow-hidden shadow-sm border border-slate-200 dark:border-slate-800 group relative">
+            <a href="{% url 'banner_click' banner_top.id %}" target="_blank" rel="noopener noreferrer" class="block">
+                <img src="{{ banner_top.image.url }}" alt="{{ banner_top.title }}" class="w-full h-auto object-cover max-h-24 md:max-h-32 hover:opacity-95 transition-opacity rounded-xl"
+            </a>
+            
+            <div class="bg-slate-50 dark:bg-slate-800 py-1.5 px-3 flex justify-between items-center text-[10px] text-slate-400 border-t border-slate-100 dark:border-slate-700">
+                <span class="uppercase tracking-wider font-bold">Parceiro</span>
+                
+                <a href="{% url 'pricing' %}" class="flex items-center gap-1 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                    <span>Remover anúncios</span>
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path></svg>
+                </a>
+            </div>
+        </div>
+        {% endif %}
+
         {% block content %}{% endblock %}
     </main>
 
@@ -216,9 +230,11 @@
         const btn = document.getElementById('mobile-menu-btn');
         const menu = document.getElementById('mobile-menu');
 
-        btn.addEventListener('click', () => {
-            menu.classList.toggle('hidden');
-        });
+        if(btn && menu){
+            btn.addEventListener('click', () => {
+                menu.classList.toggle('hidden');
+            });
+        }
 
         // Lógica do Tema
         const themeToggleBtn = document.getElementById('theme-toggle');
@@ -250,13 +266,14 @@
         // Toasts Mobile-Friendly
         function showToast(message, tags) {
             const container = document.getElementById('toast-container');
+            if(!container) return;
+
             let bgClass = 'bg-brand-600 border-brand-800'; 
             if (tags.includes('success')) bgClass = 'bg-green-600 border-green-800';
             if (tags.includes('error')) bgClass = 'bg-red-600 border-red-800';
             if (tags.includes('warning')) bgClass = 'bg-yellow-500 border-yellow-700';
             
             const toast = document.createElement('div');
-            // pointer-events-auto para permitir clicar no X mesmo com container none
             toast.className = `${bgClass} text-white px-4 py-3 rounded-lg shadow-lg border-l-4 transform transition-all duration-300 translate-y-full md:translate-x-full md:translate-y-0 flex items-center w-full md:min-w-[300px] pointer-events-auto`;
             toast.innerHTML = `<span class="font-medium flex-1 text-sm">${message}</span><button onclick="this.parentElement.remove()" class="ml-4 p-1 hover:bg-white/20 rounded font-bold">×</button>`;
             container.appendChild(toast);
