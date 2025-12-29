@@ -55,8 +55,13 @@
                             {% endif %}
                         </td>
 
-                        <td class="px-6 py-4 text-right text-green-600 dark:text-green-400 font-medium">
-                            R$ {{ record.total_income|floatformat:2 }}
+                        <td class="px-6 py-4 text-right">
+                            <div class="font-medium text-green-600 dark:text-green-400">
+                                R$ {{ record.total_income|floatformat:2 }}
+                            </div>
+                            <div class="text-[10px] text-slate-400 mt-0.5" title="Receita por KM">
+                                R$ {{ record.income_per_km|floatformat:2 }}/km
+                            </div>
                         </td>
 
                         <td class="px-6 py-4 text-right">
@@ -69,8 +74,11 @@
                         </td>
 
                         <td class="px-6 py-4 text-right">
-                            <span class="font-bold text-base {% if record.profit >= 0 %}text-blue-600 dark:text-blue-400{% else %}text-red-600 dark:text-red-500{% endif %}">
+                            <span class="block font-bold text-base {% if record.profit >= 0 %}text-blue-600 dark:text-blue-400{% else %}text-red-600 dark:text-red-500{% endif %}">
                                 R$ {{ record.profit|floatformat:2 }}
+                            </span>
+                            <span class="block text-[10px] text-slate-400 mt-0.5" title="Lucro por KM">
+                                R$ {{ record.profit_per_km|floatformat:2 }}/km
                             </span>
                         </td>
 
@@ -126,16 +134,19 @@
                 <div class="text-center">
                     <p class="text-[10px] uppercase text-slate-500">Receita</p>
                     <p class="font-medium text-green-600 dark:text-green-400 text-sm">R$ {{ record.total_income|floatformat:0 }}</p>
+                    <p class="text-[9px] text-slate-400">{{ record.income_per_km|floatformat:2 }}/km</p>
                 </div>
                 <div class="text-center border-l border-slate-100 dark:border-slate-800">
                     <p class="text-[10px] uppercase text-slate-500">Custo</p>
                     <p class="font-medium text-red-600 dark:text-red-400 text-sm">R$ {{ record.total_cost|floatformat:0 }}</p>
+                    <p class="text-[9px] text-slate-400">{{ record.cost_per_km|floatformat:2 }}/km</p>
                 </div>
                 <div class="text-center border-l border-slate-100 dark:border-slate-800">
                     <p class="text-[10px] uppercase text-slate-500">Lucro</p>
                     <p class="font-bold {% if record.profit >= 0 %}text-blue-600{% else %}text-red-600{% endif %} text-sm">
                         R$ {{ record.profit|floatformat:0 }}
                     </p>
+                    <p class="text-[9px] text-slate-400">{{ record.profit_per_km|floatformat:2 }}/km</p>
                 </div>
             </div>
 

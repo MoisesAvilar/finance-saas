@@ -10,41 +10,57 @@
                 Voltar ao Histórico
             </a>
             <h1 class="text-2xl font-bold text-slate-900 dark:text-white">Extrato do Dia</h1>
-            <p class="text-slate-500">{{ record.date|date:"d" }} de {{ record.date|date:"F" }} de {{ record.date|date:"Y" }} &bull; {{ record.vehicle.model_name }}</p>
+            <p class="text-slate-500">
+                {{ record.date|date:"d" }} de {{ record.date|date:"F" }} de {{ record.date|date:"Y" }} 
+                &bull; {{ record.vehicle.model_name }}
+            </p>
         </div>
         
         {% if record.is_active %}
-            <span class="px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-800 border border-green-200">PLANTÃO ABERTO</span>
+            <span class="px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-800 border border-green-200 animate-pulse">PLANTÃO ABERTO</span>
         {% else %}
             <span class="px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-800 border border-slate-200">FECHADO</span>
         {% endif %}
     </div>
 
     <div class="grid grid-cols-3 gap-4">
+        
         <div class="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 text-center">
             <p class="text-xs uppercase text-slate-500 font-bold">Receita</p>
             <p class="text-lg font-bold text-green-600 dark:text-green-400">R$ {{ record.total_income|floatformat:2 }}</p>
+            <p class="text-[10px] text-slate-400 mt-1 border-t border-slate-100 dark:border-slate-800 pt-1" title="Média por KM">
+                R$ {{ record.income_per_km|floatformat:2 }} / km
+            </p>
         </div>
+
         <div class="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 text-center">
             <p class="text-xs uppercase text-slate-500 font-bold">Custos</p>
             <p class="text-lg font-bold text-red-600 dark:text-red-400">R$ {{ record.total_cost|floatformat:2 }}</p>
+            <p class="text-[10px] text-slate-400 mt-1 border-t border-slate-100 dark:border-slate-800 pt-1" title="Média por KM">
+                R$ {{ record.cost_per_km|floatformat:2 }} / km
+            </p>
         </div>
+
         <div class="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 text-center">
             <p class="text-xs uppercase text-slate-500 font-bold">Lucro</p>
             <p class="text-lg font-bold {% if record.profit >= 0 %}text-blue-600 dark:text-blue-400{% else %}text-red-600{% endif %}">
                 R$ {{ record.profit|floatformat:2 }}
             </p>
+            <p class="text-[10px] text-slate-400 mt-1 border-t border-slate-100 dark:border-slate-800 pt-1" title="Média por KM">
+                R$ {{ record.profit_per_km|floatformat:2 }} / km
+            </p>
         </div>
     </div>
 
     <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden">
-        <div class="p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50">
+        <div class="p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 flex justify-between items-center">
             <h3 class="font-bold text-slate-700 dark:text-white">Movimentações</h3>
+            <span class="text-xs text-slate-500">{{ transactions.count }} registros</span>
         </div>
         
         <div class="divide-y divide-slate-100 dark:divide-slate-800">
             {% for trans in transactions %}
-            <div class="p-4 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+            <div class="p-4 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group">
                 
                 <div class="flex items-center gap-4">
                     <div class="w-10 h-10 rounded-full flex items-center justify-center shrink-0
@@ -58,14 +74,20 @@
                     </div>
 
                     <div>
-                        <div class="flex items-center gap-2">
-                            <span class="px-2 py-0.5 rounded text-[10px] font-bold text-white uppercase" style="background-color: {{ trans.category.color }};">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <span class="px-2 py-0.5 rounded text-[10px] font-bold text-white uppercase shadow-sm" style="background-color: {{ trans.category.color }}; text-shadow: 0 1px 1px rgba(0,0,0,0.2);">
                                 {{ trans.category.name }}
                             </span>
                             <span class="text-xs text-slate-400">{{ trans.created_at|date:"H:i" }}</span>
                         </div>
                         <p class="text-sm text-slate-600 dark:text-slate-300 mt-1">
                             {{ trans.description|default:"Sem descrição" }}
+                            {% if trans.liters %}
+                                <span class="text-xs text-slate-400 ml-1">({{ trans.liters }} L)</span>
+                            {% endif %}
+                            {% if trans.actual_km %}
+                                <span class="text-xs text-slate-400 ml-1">(@ {{ trans.actual_km }} km)</span>
+                            {% endif %}
                         </p>
                     </div>
                 </div>
@@ -75,7 +97,7 @@
                         {% if trans.type == 'INCOME' %}+{% else %}-{% endif %} R$ {{ trans.amount|floatformat:2 }}
                     </p>
                     
-                    <div class="flex gap-2 opacity-50 hover:opacity-100 transition-opacity">
+                    <div class="flex gap-3 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                         <a href="{% url 'transaction_update' trans.pk %}" class="text-xs text-blue-600 hover:underline flex items-center gap-1">
                             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
                             Editar
@@ -97,9 +119,9 @@
         </div>
     </div>
     
-    <div class="text-center pt-4">
-        <a href="{% url 'dailyrecord_update' record.pk %}" class="text-blue-600 font-medium hover:underline">
-            Editar Totais ou KM Manualmente
+    <div class="text-center pt-4 pb-8">
+        <a href="{% url 'dailyrecord_update' record.pk %}" class="text-blue-600 font-medium hover:underline text-sm opacity-80 hover:opacity-100">
+            Precisa ajustar os totais manualmente? Clique aqui.
         </a>
     </div>
 

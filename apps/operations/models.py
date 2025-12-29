@@ -52,6 +52,13 @@ class DailyRecord(TimeStampedModel):
             return self.total_income / km
         return 0
 
+    @property
+    def profit_per_km(self):
+        km = self.km_driven
+        if km > 0:
+            return self.profit / km
+        return 0
+
 
 class Maintenance(TimeStampedModel):
     TYPE_CHOICES = (
