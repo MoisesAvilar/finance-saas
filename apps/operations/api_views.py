@@ -44,6 +44,29 @@ class TransactionViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         return Transaction.objects.filter(record__user=self.request.user)
 
+    def perform_create(self, serializer):
+        instance = serializer.save()
+
+        if instance.type == "COST" and instance.category.is_maintenance:
+            final_odometer = (
+                instance.actual_km
+                if instance.actual_km
+                else (instance.record.end_km or instance.record.start_km)
+            )
+
+            Maintenance.objects.create(
+                user=self.request.user,
+                vehicle=instance.record.vehicle,
+                date=instance.record.date,
+                cost=instance.amount,
+                odometer=final_odometer,
+                type="OTHER",
+                description=f"Via App: {instance.description}"
+                if instance.description
+                else "Registro rápido via App",
+                transaction=instance,
+            )
+
 
 class MaintenanceViewSet(viewsets.ModelViewSet):
     serializer_class = MaintenanceSerializer

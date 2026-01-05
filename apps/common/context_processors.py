@@ -6,7 +6,7 @@ def banners(request):
         return {}
 
     return {
-        "banner_top": Banner.objects.filter(
+        "banners_top_list": Banner.objects.filter(
             active=True, position="DASHBOARD_TOP"
-        ).first(),
+        ).order_by('?')
     }

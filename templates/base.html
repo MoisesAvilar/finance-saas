@@ -174,20 +174,37 @@
 
     <main class="flex-grow max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
         
-        {% if banner_top %}
-        <div class="mb-8 w-full rounded-xl overflow-hidden shadow-sm border border-slate-200 dark:border-slate-800 group relative">
-            <a href="{% url 'banner_click' banner_top.id %}" target="_blank" rel="noopener noreferrer" class="block">
-                <img src="{{ banner_top.image.url }}" alt="{{ banner_top.title }}" class="w-full h-auto object-cover max-h-24 md:max-h-32 hover:opacity-95 transition-opacity rounded-xl"
-            </a>
+        {% if banners_top_list %}
+        <div id="banner-carousel" class="mb-8 w-full rounded-xl overflow-hidden shadow-sm border border-slate-200 dark:border-slate-800 relative group h-24 md:h-32 bg-slate-100 dark:bg-slate-900">
             
-            <div class="bg-slate-50 dark:bg-slate-800 py-1.5 px-3 flex justify-between items-center text-[10px] text-slate-400 border-t border-slate-100 dark:border-slate-700">
-                <span class="uppercase tracking-wider font-bold">Parceiro</span>
-                
-                <a href="{% url 'pricing' %}" class="flex items-center gap-1 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
-                    <span>Remover anúncios</span>
-                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path></svg>
+            {% for banner in banners_top_list %}
+            <div class="banner-slide absolute inset-0 w-full h-full transition-opacity duration-1000 ease-in-out {% if forloop.first %}opacity-100 z-10{% else %}opacity-0 z-0{% endif %}" data-index="{{ forloop.counter0 }}">
+                <a href="{% url 'banner_click' banner.id %}" target="_blank" rel="noopener noreferrer" class="block w-full h-full">
+                    <img src="{{ banner.image.url }}" alt="{{ banner.title }}" class="w-full h-full object-cover hover:opacity-95 transition-opacity">
                 </a>
+                
+                <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/60 to-transparent py-2 px-3 flex justify-between items-end">
+                    <span class="text-[10px] uppercase tracking-wider font-bold text-white/80 bg-black/30 px-2 py-0.5 rounded backdrop-blur-sm">
+                        Parceiro
+                    </span>
+                    
+                    {% if forloop.first %} <a href="{% url 'pricing' %}" class="flex items-center gap-1 text-[10px] text-white/70 hover:text-white transition-colors z-20">
+                        <span>Remover anúncios</span>
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path></svg>
+                    </a>
+                    {% endif %}
+                </div>
             </div>
+            {% endfor %}
+
+            {% if banners_top_list|length > 1 %}
+            <div class="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5 z-20">
+                {% for banner in banners_top_list %}
+                <div class="indicator-dot w-1.5 h-1.5 rounded-full transition-all shadow-sm {% if forloop.first %}bg-white w-3{% else %}bg-white/50{% endif %}"></div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
         </div>
         {% endif %}
 
@@ -226,7 +243,6 @@
     </footer>
 
     <script>
-        // Lógica do Menu Mobile
         const btn = document.getElementById('mobile-menu-btn');
         const menu = document.getElementById('mobile-menu');
 
@@ -236,7 +252,6 @@
             });
         }
 
-        // Lógica do Tema
         const themeToggleBtn = document.getElementById('theme-toggle');
         const themeToggleMobile = document.getElementById('theme-toggle-mobile');
         const darkIcon = document.getElementById('theme-toggle-dark-icon');
@@ -263,7 +278,6 @@
         if(themeToggleBtn) themeToggleBtn.addEventListener('click', toggleTheme);
         if(themeToggleMobile) themeToggleMobile.addEventListener('click', toggleTheme);
 
-        // Toasts Mobile-Friendly
         function showToast(message, tags) {
             const container = document.getElementById('toast-container');
             if(!container) return;
@@ -290,6 +304,35 @@
             {% if messages %}
                 {% for message in messages %} showToast("{{ message }}", "{{ message.tags }}"); {% endfor %}
             {% endif %}
+        });
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const slides = document.querySelectorAll('.banner-slide');
+            const dots = document.querySelectorAll('.indicator-dot');
+            let currentIndex = 0;
+            const totalSlides = slides.length;
+
+            if (totalSlides > 1) {
+                setInterval(() => {
+                    slides[currentIndex].classList.remove('opacity-100', 'z-10');
+                    slides[currentIndex].classList.add('opacity-0', 'z-0');
+                    if(dots.length > 0) {
+                        dots[currentIndex].classList.remove('bg-white', 'w-3');
+                        dots[currentIndex].classList.add('bg-white/50');
+                    }
+
+                    currentIndex = (currentIndex + 1) % totalSlides;
+
+                    slides[currentIndex].classList.remove('opacity-0', 'z-0');
+                    slides[currentIndex].classList.add('opacity-100', 'z-10');
+                    if(dots.length > 0) {
+                        dots[currentIndex].classList.remove('bg-white/50');
+                        dots[currentIndex].classList.add('bg-white', 'w-3');
+                    }
+                }, 5000);
+            }
         });
     </script>
 </body>

@@ -93,8 +93,9 @@ class MaintenanceSerializer(serializers.ModelSerializer):
             "description",
             "cost",
             "odometer",
+            "transaction",
         ]
-        read_only_fields = ["user"]
+        read_only_fields = ["user", "transaction"]
 
     def get_formatted_date(self, obj):
         return obj.date.strftime("%d/%m/%Y")
