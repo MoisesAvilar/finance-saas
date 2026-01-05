@@ -415,13 +415,16 @@ class AddFinanceView(LoginRequiredMixin, View):
         active_shift = DailyRecord.objects.filter(
             user=request.user, is_active=True
         ).first()
+
         if not active_shift:
             messages.error(request, "Nenhum plantão ativo encontrado.")
             return redirect("dashboard")
 
         try:
             category_id = request.POST.get("category")
-            amount = float(request.POST.get("amount").replace(",", "."))
+            amount_str = request.POST.get("amount", "0").replace(",", ".")
+            amount = float(amount_str) if amount_str else 0.0
+
             description = request.POST.get("description")
 
             liters = request.POST.get("liters")
@@ -445,7 +448,7 @@ class AddFinanceView(LoginRequiredMixin, View):
 
             trans_type = "INCOME" if type == "income" else "COST"
 
-            Transaction.objects.create(
+            transaction = Transaction.objects.create(
                 record=active_shift,
                 category_id=category_id,
                 type=trans_type,
@@ -456,7 +459,30 @@ class AddFinanceView(LoginRequiredMixin, View):
                 actual_km=actual_km,
             )
 
-            self.update_record_totals(active_shift)
+            category = Category.objects.get(id=category_id)
+
+            if trans_type == "COST" and category.is_maintenance:
+                final_odometer = (
+                    actual_km
+                    if actual_km
+                    else (active_shift.end_km or active_shift.start_km)
+                )
+
+                Maintenance.objects.create(
+                    user=request.user,
+                    vehicle=active_shift.vehicle,
+                    date=active_shift.date,
+                    cost=amount,
+                    odometer=final_odometer,
+                    type="OTHER",
+                    description=f"Via Dashboard: {description}"
+                    if description
+                    else "Registro rápido via Dashboard",
+                    transaction=transaction,
+                )
+                messages.info(
+                    request, "Registro copiado para o Histórico de Manutenção."
+                )
 
             messages.success(
                 request, f"{'Receita' if type == 'income' else 'Despesa'} registrada!"
@@ -466,16 +492,3 @@ class AddFinanceView(LoginRequiredMixin, View):
             messages.error(request, f"Erro ao registrar: {str(e)}")
 
         return redirect("dashboard")
-
-    def update_record_totals(self, record):
-        incomes = (
-            record.transactions.filter(type="INCOME").aggregate(t=Sum("amount"))["t"]
-            or 0
-        )
-        costs = (
-            record.transactions.filter(type="COST").aggregate(t=Sum("amount"))["t"] or 0
-        )
-
-        record.total_income = incomes
-        record.total_cost = costs
-        record.save()

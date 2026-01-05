@@ -78,6 +78,14 @@ class Maintenance(TimeStampedModel):
     cost = models.DecimalField("Valor (R$)", max_digits=10, decimal_places=2)
     type = models.CharField("Tipo", max_length=20, choices=TYPE_CHOICES)
     description = models.CharField("Descrição/Oficina", max_length=200, blank=True)
+    transaction = models.ForeignKey(
+        'Transaction', 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name='maintenance_mirror',
+        verbose_name="Transação de Origem"
+    )
 
     class Meta:
         verbose_name = "Manutenção"
