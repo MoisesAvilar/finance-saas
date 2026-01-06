@@ -64,7 +64,7 @@ class Maintenance(TimeStampedModel):
     TYPE_CHOICES = (
         ("OIL", "Troca de Óleo"),
         ("TIRES", "Pneus"),
-        ("MECHANIC", "Mecânica Geral"),
+        ("MECHANICAL", "Mecânica Geral"),
         ("ELECTRICAL", "Elétrica"),
         ("DOCUMENTATION", "Documentação/IPVA"),
         ("CLEANING", "Estética/Limpeza Pesada"),
@@ -140,6 +140,7 @@ class Transaction(TimeStampedModel):
     liters = models.DecimalField("Litros (Combustível)", max_digits=6, decimal_places=2, null=True, blank=True)
     next_due_km = models.PositiveIntegerField("Próxima Troca (Km)", null=True, blank=True)
     actual_km = models.PositiveIntegerField("KM no Momento", null=True, blank=True)
+    is_full_tank = models.BooleanField("Tanque Cheio?", default=False)
 
     class Meta:
         verbose_name = "Transação"

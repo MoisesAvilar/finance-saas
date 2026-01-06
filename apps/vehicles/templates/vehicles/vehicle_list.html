@@ -30,15 +30,17 @@
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         {% for vehicle in object_list %} 
-            <div class="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden hover:border-blue-300 dark:hover:border-blue-700 transition-colors">
+            <div class="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden hover:border-blue-300 dark:hover:border-blue-700 transition-colors relative group">
                 
+                <a href="{% url 'vehicle_detail' vehicle.pk %}" class="absolute inset-0 z-0 focus:outline-none" aria-label="Ver detalhes de {{ vehicle.model_name }}"></a>
+
                 <div class="p-5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-start">
                     <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500">
+                        <div class="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 group-hover:bg-blue-50 group-hover:text-blue-600 transition-colors">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 012-2v0a2 2 0 012 2m0 0a2 2 0 012-2v0a2 2 0 012 2"></path></svg>
                         </div>
                         <div>
-                            <h3 class="text-lg font-bold text-slate-900 dark:text-white">{{ vehicle.model_name }}</h3>
+                            <h3 class="text-lg font-bold text-slate-900 dark:text-white group-hover:text-blue-600 transition-colors">{{ vehicle.model_name }}</h3>
                             <p class="text-sm text-slate-500 font-mono">{{ vehicle.license_plate|default:vehicle.plate }}</p>
                         </div>
                     </div>
@@ -75,7 +77,7 @@
                     </div>
 
                     {% if not user.is_pro %}
-                    <a href="{% url 'pricing' %}" class="absolute inset-0 flex flex-col items-center justify-center z-10 hover:bg-white/10 dark:hover:bg-black/10 transition-colors group" title="Clique para desbloquear">
+                    <a href="{% url 'pricing' %}" class="absolute inset-0 flex flex-col items-center justify-center z-20 hover:bg-white/10 dark:hover:bg-black/10 transition-colors group" title="Clique para desbloquear">
                         <div class="bg-white dark:bg-slate-800 p-1.5 rounded-full shadow-sm mb-1 group-hover:scale-110 transition-transform">
                             <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
                         </div>
@@ -86,7 +88,7 @@
                     {% endif %}
                 </div>
 
-                <div class="p-4 flex justify-between items-center text-sm border-t border-slate-100 dark:border-slate-800">
+                <div class="p-4 flex justify-between items-center text-sm border-t border-slate-100 dark:border-slate-800 relative z-10">
                     <span class="text-slate-500">Odômetro: <strong>{{ vehicle.current_odometer }} km</strong></span>
                     <div class="space-x-2">
                         <a href="{% url 'vehicle_update' vehicle.pk %}" class="px-3 py-1.5 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-md transition-colors font-medium">Editar</a>

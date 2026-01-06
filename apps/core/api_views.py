@@ -54,3 +54,22 @@ class DashboardSummaryView(APIView):
                 "chart_data": chart_data,
             }
         )
+
+
+class PricingInfoView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request):
+        pricing_info = {
+            "free_tier": {
+                "max_daily_records": 10,
+                "max_vehicles": 1,
+                "support": "Email support",
+            },
+            "pro_tier": {
+                "max_daily_records": "Unlimited",
+                "max_vehicles": "Unlimited",
+                "support": "Priority email support",
+            },
+        }
+        return Response(pricing_info)

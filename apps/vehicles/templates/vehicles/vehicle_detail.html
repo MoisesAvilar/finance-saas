@@ -1,0 +1,175 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto space-y-6 pb-20">
+    
+    <div class="bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-sm border border-slate-200 dark:border-slate-800 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+            <div class="flex items-center gap-3">
+                <h1 class="text-3xl font-bold text-slate-900 dark:text-white">{{ vehicle.model_name }}</h1>
+                {% if vehicle.is_active %}
+                    <span class="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-bold border border-green-200">ATIVO</span>
+                {% else %}
+                    <span class="bg-slate-100 text-slate-500 px-2 py-1 rounded-full text-xs font-bold border border-slate-200">INATIVO</span>
+                {% endif %}
+            </div>
+            <p class="text-slate-500 font-mono mt-1 text-lg">{{ vehicle.plate }} • {{ vehicle.get_fuel_type_display }}</p>
+        </div>
+        <div class="flex gap-2">
+            <a href="{% url 'vehicle_update' vehicle.id %}" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold transition-colors">
+                Editar
+            </a>
+            <a href="{% url 'vehicle_list' %}" class="px-4 py-2 border border-slate-200 text-slate-500 hover:bg-slate-50 rounded-xl font-bold transition-colors">
+                Voltar
+            </a>
+        </div>
+    </div>
+
+    <div x-data="{ tab: 'fuel' }" class="bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden min-h-[500px]">
+        
+        <div class="flex border-b border-slate-200 dark:border-slate-800">
+            <button @click="tab = 'fuel'" :class="{ 'border-b-2 border-blue-500 text-blue-600': tab === 'fuel', 'text-slate-500': tab !== 'fuel' }" class="flex-1 py-4 font-bold text-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                ⛽ Abastecimentos
+            </button>
+            <button @click="tab = 'maint'" :class="{ 'border-b-2 border-orange-500 text-orange-600': tab === 'maint', 'text-slate-500': tab !== 'maint' }" class="flex-1 py-4 font-bold text-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                🔧 Manutenções
+            </button>
+        </div>
+
+        <div x-show="tab === 'fuel'" class="p-0">
+            {% if fuel_history %}
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left">
+                    <thead class="text-xs text-slate-500 uppercase bg-slate-50 dark:bg-slate-800/50">
+                        <tr>
+                            <th class="px-6 py-3">Data</th>
+                            <th class="px-6 py-3">KM</th>
+                            <th class="px-6 py-3">Litros</th>
+                            <th class="px-6 py-3">Total (R$)</th>
+                            <th class="px-6 py-3 text-center">Tanque?</th>
+                            <th class="px-6 py-3 text-right text-blue-600 font-bold">Média (Km/L)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in fuel_history %}
+                        <tr class="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                            <td class="px-6 py-4 font-medium">{{ item.date|date:"d/m/y" }}</td>
+                            <td class="px-6 py-4">{{ item.km }}</td>
+                            <td class="px-6 py-4">{{ item.liters }} L</td>
+                            <td class="px-6 py-4 font-bold">R$ {{ item.cost|floatformat:2 }}</td>
+                            <td class="px-6 py-4 text-center">
+                                {% if item.is_full %}
+                                    <span class="inline-block w-3 h-3 bg-blue-500 rounded-full" title="Tanque Cheio"></span>
+                                {% else %}
+                                    <span class="inline-block w-3 h-3 bg-slate-300 rounded-full" title="Parcial"></span>
+                                {% endif %}
+                            </td>
+                            
+                            <td class="px-6 py-4 text-right">
+                                {% if is_pro %}
+                                    {% if item.avg %}
+                                        <span class="bg-blue-100 text-blue-700 px-2 py-1 rounded font-bold border border-blue-200">
+                                            {{ item.avg|floatformat:1 }}
+                                        </span>
+                                    {% else %}
+                                        <span class="text-slate-300">-</span>
+                                    {% endif %}
+                                {% else %}
+                                    <div class="blur-sm select-none opacity-50 bg-slate-200 rounded px-2">12.5</div>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="p-10 text-center text-slate-500">
+                Nenhum abastecimento registrado ainda.
+            </div>
+            {% endif %}
+            
+            {% if not is_pro %}
+            <div class="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 p-4 m-4 rounded-xl border border-blue-100 dark:border-blue-800 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="bg-blue-500 text-white p-2 rounded-lg"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg></div>
+                    <div>
+                        <p class="font-bold text-blue-800 dark:text-blue-300">Quer saber se seu carro está bebendo muito?</p>
+                        <p class="text-xs text-blue-600 dark:text-blue-400">Assine o Pro para ver a média de consumo automática a cada tanque.</p>
+                    </div>
+                </div>
+                <button class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-4 py-2 rounded-lg">Seja PRO</button>
+            </div>
+            {% endif %}
+        </div>
+
+        <div x-show="tab === 'maint'" class="p-6" style="display: none;">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <h3 class="font-bold mb-4 flex items-center gap-2">
+                        <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        Histórico
+                    </h3>
+                    <div class="space-y-3">
+                        {% for maint in maintenances %}
+                        <div class="flex justify-between items-center p-3 border border-slate-100 dark:border-slate-800 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                            <div>
+                                <p class="font-bold text-sm">{{ maint.get_type_display }}</p>
+                                <p class="text-xs text-slate-500">{{ maint.date|date:"d/m/Y" }} • {{ maint.odometer }} km</p>
+                            </div>
+                            <span class="font-bold text-slate-700 dark:text-slate-300">R$ {{ maint.cost }}</span>
+                        </div>
+                        {% empty %}
+                        <p class="text-slate-400 text-sm">Nenhuma manutenção.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-6 border border-slate-200 dark:border-slate-700">
+                    <h3 class="font-bold mb-4 flex items-center gap-2 text-slate-800 dark:text-white">
+                        <svg class="w-5 h-5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                        Gastos por Categoria
+                        {% if not is_pro %}<span class="bg-yellow-400 text-black text-[10px] px-1.5 py-0.5 rounded font-black uppercase ml-2">PRO</span>{% endif %}
+                    </h3>
+
+                    {% if is_pro %}
+                        <div class="space-y-4">
+                            {% for type, total in maint_stats.items %}
+                            <div>
+                                <div class="flex justify-between text-xs font-bold mb-1">
+                                    <span>{{ type }}</span>
+                                    <span>R$ {{ total|floatformat:2 }}</span>
+                                </div>
+                                <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2">
+                                    <div class="bg-purple-500 h-2 rounded-full" style="width: 70%"></div> </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="relative">
+                            <div class="absolute inset-0 z-10 flex items-center justify-center">
+                                <button class="bg-slate-900 text-white text-xs font-bold px-6 py-3 rounded-xl shadow-lg transform hover:scale-105 transition-all">
+                                    Liberar Análise de Custos
+                                </button>
+                            </div>
+                            <div class="filter blur-md select-none opacity-50 space-y-4">
+                                <div>
+                                    <div class="flex justify-between text-xs font-bold mb-1"><span>Mecânica</span><span>R$ 1.200,00</span></div>
+                                    <div class="w-full bg-slate-200 h-2 rounded-full"><div class="bg-purple-500 h-2 w-3/4 rounded-full"></div></div>
+                                </div>
+                                <div>
+                                    <div class="flex justify-between text-xs font-bold mb-1"><span>Pneus</span><span>R$ 800,00</span></div>
+                                    <div class="w-full bg-slate-200 h-2 rounded-full"><div class="bg-purple-500 h-2 w-1/2 rounded-full"></div></div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script src="//unpkg.com/alpinejs" defer></script>
+{% endblock %}

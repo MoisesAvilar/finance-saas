@@ -43,6 +43,13 @@
                         {{ form.liters }}
                     </div>
                 </div>
+                <div class="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
+                    {{ form.is_full_tank }}
+                    <label for="{{ form.is_full_tank.id_for_label }}" class="text-sm font-medium text-slate-700 dark:text-slate-300 cursor-pointer">
+                        {{ form.is_full_tank.label }}
+                        <span class="block text-xs text-slate-500 font-normal">Marque se completou até a bomba travar.</span>
+                    </label>
+                </div>
             </div>
 
             <div id="div_next_km" class="hidden transition-all">

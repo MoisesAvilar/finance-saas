@@ -3,7 +3,7 @@ from .models import Vehicle
 
 
 class VehicleSerializer(serializers.ModelSerializer):
-    current_odometer = serializers.ReadOnlyField()
+    odometer = serializers.ReadOnlyField(source="current_odometer")
     fuel_average = serializers.ReadOnlyField()
     maintenance_status = serializers.ReadOnlyField()
     formatted_created_at = serializers.SerializerMethodField()
@@ -17,7 +17,7 @@ class VehicleSerializer(serializers.ModelSerializer):
             "fuel_type",
             "initial_km",
             "is_active",
-            "current_odometer",
+            "odometer",
             "fuel_average",
             "maintenance_status",
             "created_at",

@@ -9,7 +9,13 @@ from .models import Category, Transaction
 def create_default_categories(sender, instance, created, **kwargs):
     if created:
         Category.objects.create(
-            user=instance, name="App (Uber/99)", type="INCOME", color="#10b981"
+            user=instance, name="99", type="INCOME", color="#10b981"
+        )
+        Category.objects.create(
+            user=instance, name="Uber", type="INCOME", color="#3b82f6"
+        )
+        Category.objects.create(
+            user=instance, name="Ifood", type="INCOME", color="#8b5cf6"
         )
         Category.objects.create(
             user=instance, name="Particular", type="INCOME", color="#059669"
@@ -37,6 +43,7 @@ def create_default_categories(sender, instance, created, **kwargs):
             user=instance, name="Outros", type="COST", color="#64748b"
         )
 
+
 @receiver(post_save, sender=Transaction)
 @receiver(post_delete, sender=Transaction)
 def update_daily_record_totals(sender, instance, **kwargs):
@@ -46,17 +53,17 @@ def update_daily_record_totals(sender, instance, **kwargs):
     """
     record = instance.record
 
-    totals = record.transactions.values('type').annotate(total=Sum('amount'))
+    totals = record.transactions.values("type").annotate(total=Sum("amount"))
 
     total_income = 0
     total_cost = 0
 
     for t in totals:
-        if t['type'] == 'INCOME':
-            total_income = t['total'] or 0
-        elif t['type'] == 'COST':
-            total_cost = t['total'] or 0
+        if t["type"] == "INCOME":
+            total_income = t["total"] or 0
+        elif t["type"] == "COST":
+            total_cost = t["total"] or 0
 
     record.total_income = total_income
     record.total_cost = total_cost
-    record.save(update_fields=['total_income', 'total_cost'])
+    record.save(update_fields=["total_income", "total_cost"])

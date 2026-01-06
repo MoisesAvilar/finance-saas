@@ -430,6 +430,7 @@ class AddFinanceView(LoginRequiredMixin, View):
             liters = request.POST.get("liters")
             next_due_km = request.POST.get("next_due_km")
             actual_km = request.POST.get("actual_km")
+            is_full_tank = request.POST.get("is_full_tank") == "on"
 
             if liters and liters.strip():
                 liters = float(liters.replace(",", "."))
@@ -457,6 +458,7 @@ class AddFinanceView(LoginRequiredMixin, View):
                 liters=liters,
                 next_due_km=next_due_km,
                 actual_km=actual_km,
+                is_full_tank=is_full_tank,
             )
 
             category = Category.objects.get(id=category_id)

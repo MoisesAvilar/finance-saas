@@ -62,10 +62,10 @@ class MonthlyReportView(APIView):
 
             data.append(
                 {
-                    "month": month_date.strftime("%B %Y"),
-                    "totals": {
-                        "days": item["days"],
-                        "km": total_km,
+                    "month": month_date.strftime("%Y-%m"),
+                    "days_worked": item["days"],
+                    "km_driven": total_km,
+                    "financial": {
                         "income": total_income,
                         "cost": total_cost_real,
                         "operational_cost": op_cost,
