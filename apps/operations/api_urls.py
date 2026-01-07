@@ -5,6 +5,8 @@ from .api_views import (
     DailyRecordViewSet,
     TransactionViewSet,
     MaintenanceViewSet,
+    OnboardUserView,
+    GetLastKmView,
 )
 
 router = DefaultRouter()
@@ -15,4 +17,6 @@ router.register(r"maintenances", MaintenanceViewSet, basename="maintenance")
 
 urlpatterns = [
     path("", include(router.urls)),
+    path("onboard/", OnboardUserView.as_view(), name="api_onboard"),
+    path("get-km/<int:vehicle_id>/", GetLastKmView.as_view(), name="api_get_km"),
 ]

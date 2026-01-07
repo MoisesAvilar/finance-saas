@@ -1,9 +1,15 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import permissions
-from django.db.models import Sum
+from django.db.models import Sum, F
 from django.utils import timezone
-from operations.models import DailyRecord, Transaction
+from operations.models import DailyRecord, Category
+from .serializers import (
+    DashboardCategorySerializer,
+    DashboardRecordSerializer,
+    ActiveShiftSerializer,
+)
+from vehicles.models import Vehicle
 
 
 class DashboardSummaryView(APIView):
@@ -15,30 +21,53 @@ class DashboardSummaryView(APIView):
         current_month = now.month
         current_year = now.year
 
-        records = DailyRecord.objects.filter(
+        records_qs = DailyRecord.objects.filter(
             user=user, date__month=current_month, date__year=current_year
         )
 
-        income = records.aggregate(s=Sum("total_income"))["s"] or 0
-        cost = records.aggregate(s=Sum("total_cost"))["s"] or 0
+        aggregates = records_qs.aggregate(
+            total_inc=Sum("total_income"),
+            total_cost=Sum("total_cost"),
+            total_km=Sum(F("end_km") - F("start_km")),
+        )
 
-        # Recalcula lucro baseado nos aggregates para precisão
+        income = aggregates["total_inc"] or 0
+        cost = aggregates["total_cost"] or 0
+        km = aggregates["total_km"] or 0
         profit = income - cost
 
-        km_driven = 0
-        for rec in records:
-            km_driven += rec.km_driven
+        income_per_km = (income / km) if km > 0 else 0
+        cost_per_km = (cost / km) if km > 0 else 0
 
-        # Busca plantão ativo
         active_shift = DailyRecord.objects.filter(user=user, is_active=True).first()
-        active_shift_id = active_shift.id if active_shift else None
+        active_shift_data = (
+            ActiveShiftSerializer(active_shift).data if active_shift else None
+        )
 
-        # Dados para o gráfico simples (últimos 7 dias)
+        current_vehicle = (
+            active_shift.vehicle
+            if active_shift
+            else Vehicle.objects.filter(user=user, is_active=True).first()
+        )
+
+        vehicle_stats = {"fuel_avg": 0, "maintenance": None}
+
+        if current_vehicle:
+            vehicle_stats["fuel_avg"] = current_vehicle.fuel_average or 0
+            vehicle_stats["maintenance"] = current_vehicle.maintenance_status
+
+        income_cats = Category.objects.filter(user=user, type="INCOME")
+        cost_cats = Category.objects.filter(user=user, type="COST")
+        recent_records = DailyRecord.objects.filter(
+            user=user, is_active=False
+        ).order_by("-date")[:5]
+
         last_7_days = DailyRecord.objects.filter(user=user).order_by("-date")[:7]
         chart_data = []
         for rec in reversed(last_7_days):
+            rec_profit = rec.total_income - rec.total_cost
             chart_data.append(
-                {"date": rec.date.strftime("%d/%m"), "profit": rec.profit}
+                {"date": rec.date.strftime("%d/%m"), "profit": rec_profit}
             )
 
         return Response(
@@ -48,9 +77,23 @@ class DashboardSummaryView(APIView):
                     "income": income,
                     "cost": cost,
                     "profit": profit,
-                    "km_driven": km_driven,
+                    "km_driven": km,
+                    "income_per_km": round(income_per_km, 2),
+                    "cost_per_km": round(cost_per_km, 2),
                 },
-                "active_shift_id": active_shift_id,
+                "vehicle_stats": vehicle_stats,
+                "active_shift": active_shift_data,
+                "lists": {
+                    "recent_records": DashboardRecordSerializer(
+                        recent_records, many=True
+                    ).data,
+                    "income_categories": DashboardCategorySerializer(
+                        income_cats, many=True
+                    ).data,
+                    "cost_categories": DashboardCategorySerializer(
+                        cost_cats, many=True
+                    ).data,
+                },
                 "chart_data": chart_data,
             }
         )

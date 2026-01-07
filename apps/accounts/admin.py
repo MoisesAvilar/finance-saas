@@ -35,25 +35,12 @@ class IsProFilter(admin.SimpleListFilter):
 
 @admin.register(CustomUser)
 class CustomUserAdmin(UserAdmin):
-    list_display = (
-        "username",
-        "email",
-        "full_name",
+    list_display = UserAdmin.list_display + (
         "is_pro",
         "pro_expiry_date",
-        "is_active",
-        "date_joined",
+        "is_pro_legacy",
     )
-
-    list_filter = (IsProFilter, "is_active", "is_staff", "date_joined")
-    search_fields = ("username", "email", "first_name", "last_name")
-    ordering = ("-date_joined",)
-
-    def full_name(self, obj):
-        return obj.get_full_name()
-
-    full_name.short_description = "Nome Completo"
-
+    list_filter = UserAdmin.list_filter + ("is_pro_legacy",)
     fieldsets = UserAdmin.fieldsets + (
-        ("Assinatura", {"fields": ("pro_expiry_date", "is_pro_legacy")}),
+        ("Assinatura PRO", {"fields": ("is_pro_legacy", "pro_expiry_date")}),
     )

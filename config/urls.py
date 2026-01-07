@@ -15,16 +15,17 @@ from rest_framework_simplejwt.views import (
 urlpatterns = [
     path('admin/', admin.site.urls),
 
-    # --- ROTAS DA API ---
-    # Autenticação (Pegar Token)
+    # --- ROTAS DE AUTENTICAÇÃO (JWT) ---
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-    path('api/v1/accounts/', include('accounts.api_urls')),
-    path('api/v1/analytics/', include('analytics.api_urls')),
-    path('api/v1/common/', include('common.api_urls')),
-    path('api/v1/core/', include('core.api_urls')),
-    path('api/v1/operations/', include('operations.api_urls')),
-    path('api/v1/vehicles/', include('vehicles.api_urls')),
+
+    # --- ROTAS DA API ---
+    path('api/accounts/', include('accounts.api_urls')),
+    path('api/analytics/', include('analytics.api_urls')),
+    path('api/common/', include('common.api_urls')),
+    path('api/core/', include('core.api_urls')),
+    path('api/operations/', include('operations.api_urls')),
+    path('api/vehicles/', include('vehicles.api_urls')),
 
     path('', TemplateView.as_view(template_name='home.html'), name='home'),
     path('painel/', DashboardView.as_view(), name='dashboard'),

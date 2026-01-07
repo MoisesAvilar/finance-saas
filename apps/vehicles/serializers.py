@@ -1,5 +1,27 @@
 from rest_framework import serializers
 from .models import Vehicle
+from operations.models import Maintenance
+
+
+class VehicleMaintenanceSerializer(serializers.ModelSerializer):
+    type_display = serializers.CharField(source="get_type_display", read_only=True)
+    formatted_date = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Maintenance
+        fields = [
+            "id",
+            "date",
+            "formatted_date",
+            "odometer",
+            "cost",
+            "type",
+            "type_display",
+            "description",
+        ]
+
+    def get_formatted_date(self, obj):
+        return obj.date.strftime("%d/%m/%Y")
 
 
 class VehicleSerializer(serializers.ModelSerializer):
@@ -35,3 +57,10 @@ class VehicleSerializer(serializers.ModelSerializer):
 
     def validate_plate(self, value):
         return value.upper().replace("-", "").strip() if value else value
+
+    def validate_model_name(self, value):
+        if len(value) < 3:
+            raise serializers.ValidationError(
+                "O nome do modelo deve ser mais descritivo (mínimo 3 caracteres)."
+            )
+        return value
