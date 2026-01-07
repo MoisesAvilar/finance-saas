@@ -75,15 +75,11 @@ class VehicleSerializer(serializers.ModelSerializer):
         return value
 
     def get_stats(self, obj):
-        Transaction = apps.get_model("operations", "Transaction")
-        DailyRecord = apps.get_model("operations", "DailyRecord")
-
-        total_maint = (
-            Transaction.objects.filter(
-                record__vehicle=obj, category__is_maintenance=True
-            ).aggregate(total=Sum("amount"))["total"]
-            or 0
-        )
+        DailyRecord = apps.get_model('operations', 'DailyRecord')
+        
+        total_maint = Maintenance.objects.filter(vehicle=obj).aggregate(
+            total=Sum('cost')
+        )['total'] or 0
 
         records = DailyRecord.objects.filter(vehicle=obj, end_km__isnull=False)
         avg_km = 0
@@ -91,24 +87,19 @@ class VehicleSerializer(serializers.ModelSerializer):
             total_km_driven = sum(r.km_driven for r in records)
             avg_km = total_km_driven / records.count()
 
-        last_maint_tx = (
-            Transaction.objects.filter(record__vehicle=obj, next_due_km__isnull=False)
-            .order_by("-created_at")
-            .first()
-        )
-
-        next_due = last_maint_tx.next_due_km if last_maint_tx else None
-        last_date = (
-            last_maint_tx.record.date.strftime("%d/%m/%Y")
-            if (last_maint_tx and last_maint_tx.record)
-            else None
-        )
+        last_maint = Maintenance.objects.filter(
+            vehicle=obj, 
+            next_due_km__isnull=False
+        ).order_by('-date').first()
+        
+        next_due = last_maint.next_due_km if last_maint else None
+        last_date = last_maint.date.strftime("%d/%m/%Y") if last_maint else None
 
         return {
             "total_maintenance": total_maint,
             "avg_daily_km": round(avg_km, 1),
             "next_maintenance_km": next_due,
-            "last_maintenance_date": last_date,
+            "last_maintenance_date": last_date
         }
 
     def get_consumption_history(self, obj):
@@ -145,25 +136,15 @@ class VehicleSerializer(serializers.ModelSerializer):
         return history[-6:]
 
     def get_maintenance_history(self, obj):
-        Transaction = apps.get_model("operations", "Transaction")
-
-        txs = (
-            Transaction.objects.filter(
-                record__vehicle=obj, category__is_maintenance=True
-            )
-            .select_related("record", "category")
-            .order_by("-created_at")[:5]
-        )
+        maints = Maintenance.objects.filter(vehicle=obj).order_by('-date')[:5]
 
         data = []
-        for t in txs:
-            data.append(
-                {
-                    "id": t.id,
-                    "description": t.description or t.category.name,
-                    "date": t.record.date.strftime("%d/%m/%Y"),
-                    "km": t.actual_km or t.record.end_km or 0,
-                    "amount": t.amount,
-                }
-            )
+        for m in maints:
+            data.append({
+                "id": m.id,
+                "description": m.description or m.get_type_display(),
+                "date": m.date.strftime("%d/%m/%Y"),
+                "km": m.odometer,
+                "amount": m.cost
+            })
         return data
