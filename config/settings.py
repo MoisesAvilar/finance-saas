@@ -184,3 +184,14 @@ SIMPLE_JWT = {
 }
 
 CORS_ALLOW_ALL_ORIGINS = True
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "https://correcerto-tau.vercel.app",
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:3000",
+    "https://correcerto-tau.vercel.app",
+    "https://driverfinance.pythonanywhere.com",
+]
