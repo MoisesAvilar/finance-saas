@@ -12,6 +12,9 @@ class CustomUser(AbstractUser):
         blank=True,
         help_text="O usuário é PRO até esta data (inclusive).",
     )
+    daily_goal = models.DecimalField(
+        "Meta Diária", max_digits=10, decimal_places=2, default=0, blank=True, null=True
+    )
 
     def __str__(self):
         return self.username
