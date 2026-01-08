@@ -6,8 +6,12 @@ from django.shortcuts import get_object_or_404
 from datetime import timedelta
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.exceptions import ValidationError
+from django.db.models import Sum, Q
+from django.db import models
+from rest_framework.views import APIView
+from .models import Transaction, Category, DailyRecord, Maintenance
+from datetime import datetime
 
-from .models import Category, DailyRecord, Transaction, Maintenance
 from vehicles.models import Vehicle
 from .serializers import (
     CategorySerializer,
@@ -18,60 +22,198 @@ from .serializers import (
 )
 
 
+class MonthlyReportView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        view_type = request.query_params.get("view", "monthly")
+        month = int(request.query_params.get("month", datetime.now().month))
+        year = int(request.query_params.get("year", datetime.now().year))
+        user = request.user
+
+        # --- AJUSTE AQUI: Filtros específicos para cada Modelo ---
+        
+        # Filtros para Transações (usam 'record__')
+        trans_filters = Q(record__user=user, record__date__year=year)
+        if view_type == "monthly":
+            trans_filters &= Q(record__date__month=month)
+
+        # Filtros para DailyRecord (diretos: 'user' e 'date')
+        record_filters = Q(user=user, date__year=year)
+        if view_type == "monthly":
+            record_filters &= Q(date__month=month)
+
+        # -------------------------------------------------------
+
+        # Aplica trans_filters onde é Transaction
+        transactions = Transaction.objects.filter(trans_filters)
+
+        total_income = (
+            transactions.filter(type="INCOME").aggregate(Sum("amount"))["amount__sum"]
+            or 0
+        )
+        total_cost = (
+            transactions.filter(type="COST").aggregate(Sum("amount"))["amount__sum"]
+            or 0
+        )
+
+        # Aplica record_filters onde é DailyRecord (Isso mata o erro 500)
+        records = DailyRecord.objects.filter(record_filters, is_active=False)
+        total_km = sum(r.km_driven for r in records)
+
+        income_cats = (
+            transactions.filter(type="INCOME")
+            .values("category__id", "category__name", "category__color")
+            .annotate(total=Sum("amount"))
+            .order_by("-total")
+        )
+
+        cost_cats = (
+            transactions.filter(type="COST")
+            .values("category__id", "category__name", "category__color")
+            .annotate(total=Sum("amount"))
+            .order_by("-total")
+        )
+
+        history_data = []
+        if user.is_pro:
+            if view_type == "monthly":
+                history_qs = (
+                    transactions.values("record__date")
+                    .annotate(
+                        income=Sum("amount", filter=Q(type="INCOME")),
+                        cost=Sum("amount", filter=Q(type="COST")),
+                    )
+                    .order_by("record__date")
+                )
+
+                for entry in history_qs:
+                    history_data.append(
+                        {
+                            "date": entry["record__date"].strftime("%d/%m"),
+                            "income": float(entry["income"] or 0),
+                            "cost": float(entry["cost"] or 0),
+                        }
+                    )
+            else:
+                history_qs = (
+                    transactions.values("record__date__month")
+                    .annotate(
+                        income=Sum("amount", filter=Q(type="INCOME")),
+                        cost=Sum("amount", filter=Q(type="COST")),
+                    )
+                    .order_by("record__date__month")
+                )
+
+                months_labels = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"]
+                for entry in history_qs:
+                    m_idx = entry["record__date__month"]
+                    history_data.append(
+                        {
+                            "date": months_labels[m_idx - 1],
+                            "income": float(entry["income"] or 0),
+                            "cost": float(entry["cost"] or 0),
+                        }
+                    )
+
+        return Response(
+            {
+                "is_pro": user.is_pro,
+                "summary": {
+                    "total_income": float(total_income),
+                    "total_cost": float(total_cost),
+                    "net_profit": float(total_income - total_cost),
+                    "total_km": total_km,
+                    "income_categories": [
+                        {
+                            "id": c["category__id"],
+                            "name": c["category__name"],
+                            "color": c["category__color"],
+                            "total": float(c["total"]),
+                            "percentage": round(
+                                (float(c["total"]) / float(total_income) * 100), 1
+                            )
+                            if total_income > 0
+                            else 0,
+                        }
+                        for c in income_cats
+                    ],
+                    "cost_categories": [
+                        {
+                            "id": c["category__id"],
+                            "name": c["category__name"],
+                            "color": c["category__color"],
+                            "total": float(c["total"]),
+                            "percentage": round(
+                                (float(c["total"]) / float(total_cost) * 100), 1
+                            )
+                            if total_cost > 0
+                            else 0,
+                        }
+                        for c in cost_cats
+                    ],
+                    "daily_history": history_data,
+                },
+            }
+        )
+
 class OnboardUserView(views.APIView):
     """
-    Cria categorias padrão baseadas no perfil do usuário (App vs Entregas).
+    Cria categorias DE RECEITA.
+    Modo 1: Recebe 'types' e cria tudo daquele tipo.
+    Modo 2: Recebe 'app_list' e cria apenas os apps específicos solicitados.
     """
 
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request):
         types = request.data.get("types", [])
+        app_list = request.data.get("app_list", None)
         user = request.user
 
+        CATALOG = {
+            # Passageiros
+            "Uber": {"color": "#000000", "type": "passenger"},
+            "99": {"color": "#eab308", "type": "passenger"},
+            "Indrive": {"color": "#16a34a", "type": "passenger"},
+            "Particular": {"color": "#059669", "type": "passenger"},
+            "Black": {"color": "#111827", "type": "passenger"},
+            # Entregas
+            "iFood": {"color": "#ea1d2c", "type": "delivery"},
+            "Mercado Livre": {"color": "#ffe600", "type": "delivery"},
+            "Loggi": {"color": "#3b82f6", "type": "delivery"},
+            "Borzo": {"color": "#8b5cf6", "type": "delivery"},
+            "Zé Delivery": {"color": "#f59e0b", "type": "delivery"},
+            "CornerShop": {"color": "#ef4444", "type": "delivery"},
+        }
+
+        wanted_cats = []
+
+        if app_list is not None:
+            for app_name in app_list:
+                if app_name in CATALOG:
+                    wanted_cats.append(
+                        {"name": app_name, "color": CATALOG[app_name]["color"]}
+                    )
+        else:
+            for name, data in CATALOG.items():
+                if data["type"] in types:
+                    wanted_cats.append({"name": name, "color": data["color"]})
+
+        if not wanted_cats:
+            wanted_cats.append({"name": "Ganhos Diversos", "color": "#059669"})
+
+        existing_names = set(
+            Category.objects.filter(user=user, type="INCOME").values_list(
+                "name", flat=True
+            )
+        )
+
         cats_to_create = [
-            Category(
-                user=user,
-                name="Abastecimento",
-                type="COST",
-                color="#ef4444",
-                is_fuel=True,
-            ),
-            Category(
-                user=user,
-                name="Manutenção",
-                type="COST",
-                color="#f97316",
-                is_maintenance=True,
-            ),
-            Category(user=user, name="Alimentação", type="COST", color="#eab308"),
-            Category(user=user, name="IPVA/Doc", type="COST", color="#64748b"),
-            Category(user=user, name="Outros", type="COST", color="#94a3b8"),
+            Category(user=user, name=c["name"], type="INCOME", color=c["color"])
+            for c in wanted_cats
+            if c["name"] not in existing_names
         ]
-
-        if "passenger" in types:
-            cats_to_create.extend(
-                [
-                    Category(user=user, name="Uber", type="INCOME", color="#000000"),
-                    Category(user=user, name="99", type="INCOME", color="#eab308"),
-                    Category(user=user, name="Indrive", type="INCOME", color="#16a34a"),
-                    Category(
-                        user=user, name="Particular", type="INCOME", color="#059669"
-                    ),
-                ]
-            )
-
-        if "delivery" in types:
-            cats_to_create.extend(
-                [
-                    Category(user=user, name="iFood", type="INCOME", color="#ea1d2c"),
-                    Category(
-                        user=user, name="Mercado Livre", type="INCOME", color="#ffe600"
-                    ),
-                    Category(user=user, name="Loggi", type="INCOME", color="#3b82f6"),
-                    Category(user=user, name="Borzo", type="INCOME", color="#8b5cf6"),
-                ]
-            )
 
         if cats_to_create:
             Category.objects.bulk_create(cats_to_create)
@@ -200,20 +342,22 @@ class TransactionViewSet(viewsets.ModelViewSet):
 
     def perform_update(self, serializer):
         instance = serializer.save()
-        
-        if hasattr(instance, 'maintenance_mirror'):
+
+        if hasattr(instance, "maintenance_mirror"):
             maint = instance.maintenance_mirror.first()
-            
+
             if maint:
                 maint.cost = instance.amount
-                maint.description = f"Via Dashboard: {instance.description or instance.category.name}"
-                
+                maint.description = (
+                    f"Via Dashboard: {instance.description or instance.category.name}"
+                )
+
                 if instance.actual_km:
                     maint.odometer = instance.actual_km
-                    
+
                 if instance.next_due_km:
                     maint.next_due_km = instance.next_due_km
-                    
+
                 maint.save()
 
 
@@ -227,3 +371,34 @@ class MaintenanceViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+
+
+class CategoryReportDetailView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request, pk):
+        month = request.query_params.get("month", datetime.now().month)
+        year = request.query_params.get("year", datetime.now().year)
+        user = request.user
+
+        category = get_object_or_404(Category, pk=pk, user=user)
+
+        transactions = Transaction.objects.filter(
+            category=category, record__date__month=month, record__date__year=year
+        ).order_by("-record__date")
+
+        serializer = TransactionSerializer(transactions, many=True)
+
+        return Response(
+            {
+                "category": {
+                    "name": category.name,
+                    "type": category.type,
+                    "color": category.color,
+                },
+                "total_period": transactions.aggregate(Sum("amount"))["amount__sum"]
+                or 0,
+                "count": transactions.count(),
+                "transactions": serializer.data,
+            }
+        )

@@ -18,6 +18,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "email",
             "is_pro",
             "daily_goal",
+            "work_type",
             "plan_name",
             "pro_expiry_date",
         ]

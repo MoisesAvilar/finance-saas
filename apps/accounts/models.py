@@ -15,6 +15,18 @@ class CustomUser(AbstractUser):
     daily_goal = models.DecimalField(
         "Meta Diária", max_digits=10, decimal_places=2, default=0, blank=True, null=True
     )
+    WORK_TYPE_CHOICES = (
+        ('RIDESHARE', 'Motorista de App (Uber/99)'),
+        ('DELIVERY', 'Entregador (Moto/Bike)'),
+        ('BOTH', 'Ambos'),
+    )
+    work_type = models.CharField(
+        "Tipo de Trabalho", 
+        max_length=20, 
+        choices=WORK_TYPE_CHOICES, 
+        null=True, 
+        blank=True
+    )
 
     def __str__(self):
         return self.username

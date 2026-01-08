@@ -9,33 +9,11 @@ from .models import Category, Transaction
 def create_default_categories(sender, instance, created, **kwargs):
     if created:
         Category.objects.create(
-            user=instance, name="99", type="INCOME", color="#10b981"
+            user=instance, name="Abastecimento", type="COST", color="#ef4444", is_fuel=True,
         )
         Category.objects.create(
-            user=instance, name="Uber", type="INCOME", color="#3b82f6"
+            user=instance, name="Manutenção", type="COST", color="#f97316", is_maintenance=True,
         )
-        Category.objects.create(
-            user=instance, name="Ifood", type="INCOME", color="#8b5cf6"
-        )
-        Category.objects.create(
-            user=instance, name="Particular", type="INCOME", color="#059669"
-        )
-
-        Category.objects.create(
-            user=instance,
-            name="Abastecimento",
-            type="COST",
-            color="#ef4444",
-            is_fuel=True,
-        )
-        Category.objects.create(
-            user=instance,
-            name="Manutenção",
-            type="COST",
-            color="#f97316",
-            is_maintenance=True,
-        )
-
         Category.objects.create(
             user=instance, name="Alimentação", type="COST", color="#eab308"
         )

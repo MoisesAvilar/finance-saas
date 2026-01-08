@@ -119,7 +119,7 @@ LANGUAGE_CODE = 'pt-br'
 
 USE_L10N = True
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'America/Sao_Paulo'
 
 USE_I18N = True
 

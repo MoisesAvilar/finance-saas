@@ -39,8 +39,10 @@ class CustomUserAdmin(UserAdmin):
         "is_pro",
         "pro_expiry_date",
         "is_pro_legacy",
+        "work_type",
     )
     list_filter = UserAdmin.list_filter + ("is_pro_legacy",)
     fieldsets = UserAdmin.fieldsets + (
         ("Assinatura PRO", {"fields": ("is_pro_legacy", "pro_expiry_date")}),
+        ("Preferências", {"fields": ("daily_goal", "work_type")}),
     )
