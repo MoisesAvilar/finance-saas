@@ -92,6 +92,8 @@ class DailyRecordSerializer(serializers.ModelSerializer):
             "vehicle_plate",
             "date",
             "formatted_date",
+            "created_at",
+            "updated_at",
             "start_km",
             "end_km",
             "is_active",
