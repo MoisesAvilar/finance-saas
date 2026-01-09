@@ -31,21 +31,15 @@ class MonthlyReportView(APIView):
         year = int(request.query_params.get("year", datetime.now().year))
         user = request.user
 
-        # --- AJUSTE AQUI: Filtros específicos para cada Modelo ---
-        
-        # Filtros para Transações (usam 'record__')
+        # Filtros de tempo
         trans_filters = Q(record__user=user, record__date__year=year)
+        record_filters = Q(user=user, date__year=year)
+
         if view_type == "monthly":
             trans_filters &= Q(record__date__month=month)
-
-        # Filtros para DailyRecord (diretos: 'user' e 'date')
-        record_filters = Q(user=user, date__year=year)
-        if view_type == "monthly":
             record_filters &= Q(date__month=month)
 
-        # -------------------------------------------------------
-
-        # Aplica trans_filters onde é Transaction
+        # 1. Cálculos de Totais
         transactions = Transaction.objects.filter(trans_filters)
 
         total_income = (
@@ -57,24 +51,27 @@ class MonthlyReportView(APIView):
             or 0
         )
 
-        # Aplica record_filters onde é DailyRecord (Isso mata o erro 500)
+        # Apenas registros finalizados entram no cálculo de KM
         records = DailyRecord.objects.filter(record_filters, is_active=False)
         total_km = sum(r.km_driven for r in records)
+        km_float = float(total_km) if total_km > 0 else 0
 
-        income_cats = (
+        # 2. Agrupamento por Categorias
+        income_cats_qs = (
             transactions.filter(type="INCOME")
             .values("category__id", "category__name", "category__color")
             .annotate(total=Sum("amount"))
             .order_by("-total")
         )
 
-        cost_cats = (
+        cost_cats_qs = (
             transactions.filter(type="COST")
             .values("category__id", "category__name", "category__color")
             .annotate(total=Sum("amount"))
             .order_by("-total")
         )
 
+        # 3. Preparação do Histórico (Apenas para PRO)
         history_data = []
         if user.is_pro:
             if view_type == "monthly":
@@ -86,7 +83,6 @@ class MonthlyReportView(APIView):
                     )
                     .order_by("record__date")
                 )
-
                 for entry in history_qs:
                     history_data.append(
                         {
@@ -104,18 +100,30 @@ class MonthlyReportView(APIView):
                     )
                     .order_by("record__date__month")
                 )
-
-                months_labels = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"]
+                labels = [
+                    "Jan",
+                    "Fev",
+                    "Mar",
+                    "Abr",
+                    "Mai",
+                    "Jun",
+                    "Jul",
+                    "Ago",
+                    "Set",
+                    "Out",
+                    "Nov",
+                    "Dez",
+                ]
                 for entry in history_qs:
-                    m_idx = entry["record__date__month"]
                     history_data.append(
                         {
-                            "date": months_labels[m_idx - 1],
+                            "date": labels[entry["record__date__month"] - 1],
                             "income": float(entry["income"] or 0),
                             "cost": float(entry["cost"] or 0),
                         }
                     )
 
+        # 4. Montagem da Resposta com o "Pulo do Gato"
         return Response(
             {
                 "is_pro": user.is_pro,
@@ -124,38 +132,57 @@ class MonthlyReportView(APIView):
                     "total_cost": float(total_cost),
                     "net_profit": float(total_income - total_cost),
                     "total_km": total_km,
-                    "income_categories": [
-                        {
-                            "id": c["category__id"],
-                            "name": c["category__name"],
-                            "color": c["category__color"],
-                            "total": float(c["total"]),
-                            "percentage": round(
-                                (float(c["total"]) / float(total_income) * 100), 1
-                            )
-                            if total_income > 0
-                            else 0,
-                        }
-                        for c in income_cats
-                    ],
-                    "cost_categories": [
-                        {
-                            "id": c["category__id"],
-                            "name": c["category__name"],
-                            "color": c["category__color"],
-                            "total": float(c["total"]),
-                            "percentage": round(
-                                (float(c["total"]) / float(total_cost) * 100), 1
-                            )
-                            if total_cost > 0
-                            else 0,
-                        }
-                        for c in cost_cats
-                    ],
-                    "daily_history": history_data,
+                    # Métricas por KM do Resumo
+                    "income_per_km": round(float(total_income) / km_float, 2)
+                    if km_float > 0
+                    else 0,
+                    "cost_per_km": round(float(total_cost) / km_float, 2)
+                    if km_float > 0
+                    else 0,
+                    "profit_per_km": round(
+                        float(total_income - total_cost) / km_float, 2
+                    )
+                    if km_float > 0
+                    else 0,
                 },
+                "income_categories": [
+                    {
+                        "id": c["category__id"],
+                        "name": c["category__name"],
+                        "color": c["category__color"],
+                        "value": float(c["total"]),
+                        "per_km": round(float(c["total"]) / km_float, 2)
+                        if km_float > 0
+                        else 0,
+                        "percentage": round(
+                            (float(c["total"]) / float(total_income) * 100), 1
+                        )
+                        if total_income > 0
+                        else 0,
+                    }
+                    for c in income_cats_qs
+                ],
+                "cost_categories": [
+                    {
+                        "id": c["category__id"],
+                        "name": c["category__name"],
+                        "color": c["category__color"],
+                        "value": float(c["total"]),
+                        "per_km": round(float(c["total"]) / km_float, 2)
+                        if km_float > 0
+                        else 0,
+                        "percentage": round(
+                            (float(c["total"]) / float(total_cost) * 100), 1
+                        )
+                        if total_cost > 0
+                        else 0,
+                    }
+                    for c in cost_cats_qs
+                ],
+                "daily_history": history_data,
             }
         )
+
 
 class OnboardUserView(views.APIView):
     """

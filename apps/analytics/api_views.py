@@ -1,3 +1,4 @@
+import xlsxwriter
 import openpyxl
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from django.http import HttpResponse
@@ -7,6 +8,182 @@ from rest_framework import permissions, status
 from django.db.models import Sum, Count, F
 from django.db.models.functions import TruncMonth
 from operations.models import DailyRecord, Maintenance, Transaction
+from io import BytesIO
+
+
+class ExportReportView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+
+        if not user.is_pro:
+            return Response(
+                {"error": "Esta funcionalidade é exclusiva para usuários PRO."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        month = request.query_params.get("month")
+        year = request.query_params.get("year")
+
+        records = DailyRecord.objects.filter(
+            user=user, date__month=month, date__year=year, is_active=False
+        ).order_by("date")
+
+        if not records.exists():
+            return Response(
+                {"error": "Nenhum dado encontrado para este período."}, status=404
+            )
+
+        transactions = Transaction.objects.filter(
+            record__user=user, record__date__month=month, record__date__year=year
+        )
+
+        # CORREÇÃO AQUI: Filtrando pela Flag is_fuel e is_maintenance
+        fuel_total = float(
+            transactions.filter(category__is_fuel=True).aggregate(Sum("amount"))[
+                "amount__sum"
+            ]
+            or 0
+        )
+
+        maint_total = float(
+            transactions.filter(category__is_maintenance=True).aggregate(Sum("amount"))[
+                "amount__sum"
+            ]
+            or 0
+        )
+
+        total_income = float(
+            records.aggregate(Sum("total_income"))["total_income__sum"] or 0
+        )
+
+        output = BytesIO()
+        workbook = xlsxwriter.Workbook(output, {"in_memory": True})
+
+        # Estilos
+        header_fmt = workbook.add_format(
+            {"bold": True, "bg_color": "#1e293b", "font_color": "white", "border": 1}
+        )
+        money_fmt = workbook.add_format({"num_format": "R$ #,##0.00", "border": 1})
+        date_fmt = workbook.add_format({"num_format": "dd/mm/yyyy", "border": 1})
+        border_fmt = workbook.add_format({"border": 1})
+        bold_money_fmt = workbook.add_format(
+            {"bold": True, "num_format": "R$ #,##0.00", "bg_color": "#f1f5f9"}
+        )
+
+        # Aba Histórico
+        ws_hist = workbook.add_worksheet("Histórico Detalhado")
+        headers = ["Data", "Ganhos", "Custos", "Lucro", "KM Rodados", "R$/KM"]
+        for col, text in enumerate(headers):
+            ws_hist.write(0, col, text, header_fmt)
+
+        for row, r in enumerate(records, start=1):
+            ws_hist.write(row, 0, r.date.strftime("%Y-%m-%d"), date_fmt)
+            ws_hist.write(
+                row, 1, float(r.total_income), money_fmt
+            )  # Usando total_income correto
+            ws_hist.write(
+                row, 2, float(r.total_cost), money_fmt
+            )  # Usando total_cost correto
+            ws_hist.write(row, 3, float(r.profit), money_fmt)
+            ws_hist.write(row, 4, float(r.km_driven), border_fmt)
+            ws_hist.write(row, 5, float(r.income_per_km), money_fmt)
+
+        ws_hist.set_column("A:F", 15)
+
+        # Aba Fiscal
+        ws_fiscal = workbook.add_worksheet("Resumo Fiscal")
+        ws_fiscal.set_column("A:A", 40)
+        ws_fiscal.set_column("B:B", 20)
+        ws_fiscal.set_column("C:C", 50)
+
+        fiscal_headers = ["Descrição", "Valor", "Nota para Carnê-Leão"]
+        for col, text in enumerate(fiscal_headers):
+            ws_fiscal.write(0, col, text, header_fmt)
+
+        fiscal_data = [
+            [
+                "Rendimento Bruto (Receita)",
+                total_income,
+                "Total recebido dos apps/passageiros",
+            ],
+            ["(-) Despesa: Combustível", fuel_total, "Dutível conforme regulamento"],
+            ["(-) Despesa: Manutenção", maint_total, "Dutível conforme regulamento"],
+            [
+                "VALOR LÍQUIDO TRIBUTÁVEL",
+                total_income - (fuel_total + maint_total),
+                "Base sugerida para cálculo de imposto",
+            ],
+        ]
+
+        for row, item in enumerate(fiscal_data, start=1):
+            fmt = bold_money_fmt if row == 4 else money_fmt
+            ws_fiscal.write(row, 0, item[0], border_fmt)
+            ws_fiscal.write(row, 1, item[1], fmt)
+            ws_fiscal.write(row, 2, item[2], border_fmt)
+
+        workbook.close()
+        output.seek(0)
+
+        filename = f"Relatorio_Fiscal_{month}_{year}.xlsx"
+        response = HttpResponse(
+            output.read(),
+            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )
+        response["Content-Disposition"] = f"attachment; filename={filename}"
+        return response
+
+
+class FiscalPreviewView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        if not user.is_pro:
+            return Response(
+                {"error": "Exclusivo PRO"}, status=status.HTTP_403_FORBIDDEN
+            )
+
+        month = request.query_params.get("month")
+        year = request.query_params.get("year")
+
+        records = DailyRecord.objects.filter(
+            user=user, date__month=month, date__year=year, is_active=False
+        )
+        total_income = float(
+            records.aggregate(Sum("total_income"))["total_income__sum"] or 0
+        )
+
+        transactions = Transaction.objects.filter(
+            record__user=user, record__date__month=month, record__date__year=year
+        )
+
+        # CORREÇÃO AQUI: Filtrando pela Flag
+        fuel_total = float(
+            transactions.filter(category__is_fuel=True).aggregate(Sum("amount"))[
+                "amount__sum"
+            ]
+            or 0
+        )
+        maint_total = float(
+            transactions.filter(category__is_maintenance=True).aggregate(Sum("amount"))[
+                "amount__sum"
+            ]
+            or 0
+        )
+
+        return Response(
+            {
+                "month": month,
+                "year": year,
+                "total_income": total_income,
+                "fuel_total": fuel_total,
+                "maint_total": maint_total,
+                "tax_base": total_income - (fuel_total + maint_total),
+                "currency": "BRL",
+            }
+        )
 
 
 class MonthlyReportView(APIView):
@@ -84,143 +261,3 @@ class MonthlyReportView(APIView):
             )
 
         return Response(data)
-
-
-class ExportReportView(APIView):
-    """
-    Gera o Excel (.xlsx) detalhado (funcionalidade PRO).
-    Retorna o arquivo binário diretamente.
-    """
-
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get(self, request):
-        if not request.user.is_pro:
-            return Response(
-                {"detail": "Funcionalidade exclusiva para usuários PRO."},
-                status=status.HTTP_403_FORBIDDEN,
-            )
-
-        WEEKDAYS = {
-            0: "Segunda-feira",
-            1: "Terça-feira",
-            2: "Quarta-feira",
-            3: "Quinta-feira",
-            4: "Sexta-feira",
-            5: "Sábado",
-            6: "Domingo",
-        }
-
-        records = (
-            DailyRecord.objects.filter(user=request.user, is_active=False)
-            .order_by("-date")
-            .prefetch_related("transactions", "vehicle")
-        )
-
-        workbook = openpyxl.Workbook()
-        sheet = workbook.active
-        sheet.title = "Relatório Financeiro"
-
-        header_font = Font(bold=True, color="FFFFFF")
-        header_fill = PatternFill(
-            start_color="1e293b", end_color="1e293b", fill_type="solid"
-        )
-        center_align = Alignment(horizontal="center", vertical="center")
-        thin_border = Border(
-            left=Side(style="thin"),
-            right=Side(style="thin"),
-            top=Side(style="thin"),
-            bottom=Side(style="thin"),
-        )
-
-        headers = [
-            "Data",
-            "Dia Semana",
-            "Veículo",
-            "Placa",
-            "KM Inicial",
-            "KM Final",
-            "Rodagem (km)",
-            "Receita",
-            "Combustível",
-            "Manutenção",
-            "Outros",
-            "Custo Total",
-            "Lucro Líquido",
-            "R$/km",
-        ]
-        sheet.append(headers)
-
-        for cell in sheet[1]:
-            cell.font = header_font
-            cell.fill = header_fill
-            cell.alignment = center_align
-            cell.border = thin_border
-
-        row_num = 2
-        for record in records:
-            fuel_cost = sum(
-                t.amount for t in record.transactions.all() if t.category.is_fuel
-            )
-            maint_cost = sum(
-                t.amount for t in record.transactions.all() if t.category.is_maintenance
-            )
-            other_cost = record.total_cost - (fuel_cost + maint_cost)
-
-            income_per_km = (
-                (record.profit / record.km_driven) if record.km_driven else 0
-            )
-
-            row = [
-                record.date,
-                WEEKDAYS[record.date.weekday()],
-                record.vehicle.model_name,
-                record.vehicle.plate,
-                record.start_km,
-                record.end_km,
-                record.km_driven,
-                float(record.total_income),
-                float(fuel_cost),
-                float(maint_cost),
-                float(other_cost),
-                float(record.total_cost),
-                float(record.profit),
-                float(round(income_per_km, 2)),
-            ]
-            sheet.append(row)
-
-            date_cell = sheet.cell(row=row_num, column=1)
-            date_cell.number_format = "DD/MM/YYYY"
-
-            currency_format = "R$ #,##0.00;[Red]-R$ #,##0.00"
-            for col_idx in range(8, 15):
-                cell = sheet.cell(row=row_num, column=col_idx)
-                cell.number_format = currency_format
-
-            profit_cell = sheet.cell(row=row_num, column=13)
-            if record.profit < 0:
-                profit_cell.font = Font(color="DC2626", bold=True)
-            elif record.profit > 0:
-                profit_cell.font = Font(color="16A34A", bold=True)
-
-            for col in range(1, 15):
-                cell = sheet.cell(row=row_num, column=col)
-                cell.border = thin_border
-                if col != 3:
-                    cell.alignment = center_align
-
-            row_num += 1
-
-        column_widths = [12, 18, 20, 12, 10, 10, 10, 15, 15, 15, 12, 15, 18, 10]
-        for i, width in enumerate(column_widths, 1):
-            sheet.column_dimensions[openpyxl.utils.get_column_letter(i)].width = width
-
-        response = HttpResponse(
-            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        )
-        response["Content-Disposition"] = (
-            'attachment; filename="Relatorio_Financeiro_PRO.xlsx"'
-        )
-        workbook.save(response)
-
-        return response
