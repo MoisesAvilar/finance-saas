@@ -47,21 +47,55 @@ class DailyRecordAdmin(admin.ModelAdmin):
 @admin.register(Transaction)
 class TransactionAdmin(admin.ModelAdmin):
     list_display = (
+        "id",
         "date_display",
         "type",
         "category",
         "amount",
-        "is_full_tank",
         "description",
+        "created_at",
+        "is_full_tank",
     )
-    list_filter = ("type", "is_full_tank", "category", "created_at")
-    search_fields = ("description", "category__name", "record__user__username")
+
+    list_editable = ("amount", "description", "category", "is_full_tank")
+
+    list_filter = ("type", "category", "is_full_tank", "created_at", "record__user")
+
+    search_fields = (
+        "description",
+        "category__name",
+        "record__user__username",
+        "record__vehicle__model_name",
+    )
     raw_id_fields = ("record", "category")
 
-    def date_display(self, obj):
-        return obj.created_at.strftime("%d/%m/%Y %H:%M")
+    fieldsets = (
+        (
+            "Dados Principais",
+            {"fields": ("record", "type", "category", "amount", "description")},
+        ),
+        (
+            "Detalhes de Combustível & Km",
+            {
+                "fields": ("liters", "is_full_tank", "actual_km", "next_due_km"),
+                "classes": ("collapse",),
+            },
+        ),
+        (
+            "Metadados",
+            {
+                "fields": ("created_at", "updated_at"),
+                "classes": ("collapse",),
+            },
+        ),
+    )
 
-    date_display.short_description = "Data/Hora"
+    readonly_fields = ("updated_at",)
+
+    def date_display(self, obj):
+        return obj.created_at.strftime("%d/%m %H:%M")
+
+    date_display.short_description = "Data"
 
 
 @admin.register(Maintenance)

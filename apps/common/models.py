@@ -1,8 +1,9 @@
 from django.db import models
+from django.utils import timezone
 
 
 class TimeStampedModel(models.Model):
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Criado em")
+    created_at = models.DateTimeField("Criado em", default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Atualizado em")
 
     class Meta:
