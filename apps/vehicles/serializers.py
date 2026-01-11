@@ -56,6 +56,53 @@ class VehicleSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["user", "created_at", "updated_at"]
 
+    def validate(self, data):
+        """
+        Implementa a lógica do 'Frozen Slot' para usuários FREE.
+        """
+        request = self.context.get("request")
+        if not request or not request.user:
+            return data
+
+        user = request.user
+
+        if getattr(user, "is_pro", False):
+            return data
+
+        if "is_active" in data:
+            new_status = data["is_active"]
+
+            if self.instance:
+                current_status = self.instance.is_active
+
+                if current_status is True and new_status is False:
+                    raise serializers.ValidationError(
+                        {
+                            "is_active": "No plano Grátis, o slot de veículo é fixo. Para trocar de veículo, você deve fazer Upgrade ou EXCLUIR permanentemente o veículo atual."
+                        }
+                    )
+
+                if new_status is True and current_status is False:
+                    if (
+                        Vehicle.objects.filter(user=user, is_active=True)
+                        .exclude(pk=self.instance.pk)
+                        .exists()
+                    ):
+                        raise serializers.ValidationError(
+                            {
+                                "is_active": "Você já tem um veículo ocupando seu slot gratuito. Assine o PRO para gerenciar múltiplos carros."
+                            }
+                        )
+
+            else:
+                if new_status is True:
+                    if Vehicle.objects.filter(user=user, is_active=True).exists():
+                        raise serializers.ValidationError(
+                            {"is_active": "Limite de slot atingido."}
+                        )
+
+        return data
+
     def get_formatted_created_at(self, obj):
         return obj.created_at.strftime("%d/%m/%Y")
 
@@ -75,11 +122,14 @@ class VehicleSerializer(serializers.ModelSerializer):
         return value
 
     def get_stats(self, obj):
-        DailyRecord = apps.get_model('operations', 'DailyRecord')
-        
-        total_maint = Maintenance.objects.filter(vehicle=obj).aggregate(
-            total=Sum('cost')
-        )['total'] or 0
+        DailyRecord = apps.get_model("operations", "DailyRecord")
+
+        total_maint = (
+            Maintenance.objects.filter(vehicle=obj).aggregate(total=Sum("cost"))[
+                "total"
+            ]
+            or 0
+        )
 
         records = DailyRecord.objects.filter(vehicle=obj, end_km__isnull=False)
         avg_km = 0
@@ -87,11 +137,12 @@ class VehicleSerializer(serializers.ModelSerializer):
             total_km_driven = sum(r.km_driven for r in records)
             avg_km = total_km_driven / records.count()
 
-        last_maint = Maintenance.objects.filter(
-            vehicle=obj, 
-            next_due_km__isnull=False
-        ).order_by('-date').first()
-        
+        last_maint = (
+            Maintenance.objects.filter(vehicle=obj, next_due_km__isnull=False)
+            .order_by("-date")
+            .first()
+        )
+
         next_due = last_maint.next_due_km if last_maint else None
         last_date = last_maint.date.strftime("%d/%m/%Y") if last_maint else None
 
@@ -99,7 +150,7 @@ class VehicleSerializer(serializers.ModelSerializer):
             "total_maintenance": total_maint,
             "avg_daily_km": round(avg_km, 1),
             "next_maintenance_km": next_due,
-            "last_maintenance_date": last_date
+            "last_maintenance_date": last_date,
         }
 
     def get_consumption_history(self, obj):
@@ -136,15 +187,17 @@ class VehicleSerializer(serializers.ModelSerializer):
         return history[-6:]
 
     def get_maintenance_history(self, obj):
-        maints = Maintenance.objects.filter(vehicle=obj).order_by('-date')[:5]
+        maints = Maintenance.objects.filter(vehicle=obj).order_by("-date")[:5]
 
         data = []
         for m in maints:
-            data.append({
-                "id": m.id,
-                "description": m.description or m.get_type_display(),
-                "date": m.date.strftime("%d/%m/%Y"),
-                "km": m.odometer,
-                "amount": m.cost
-            })
+            data.append(
+                {
+                    "id": m.id,
+                    "description": m.description or m.get_type_display(),
+                    "date": m.date.strftime("%d/%m/%Y"),
+                    "km": m.odometer,
+                    "amount": m.cost,
+                }
+            )
         return data

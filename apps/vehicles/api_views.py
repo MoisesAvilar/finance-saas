@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from .models import Vehicle
 from .serializers import VehicleSerializer, VehicleMaintenanceSerializer
 from operations.models import Transaction, Maintenance
+from rest_framework import exceptions
 
 
 class VehicleViewSet(viewsets.ModelViewSet):
@@ -12,18 +13,43 @@ class VehicleViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         return Vehicle.objects.filter(user=self.request.user).order_by(
-            "-is_active", "model_name"
+            "-is_active", "-id"
         )
+
+    def get_object(self):
+        """
+        Sobrescreve a busca de um objeto específico (GET/PUT/DELETE /vehicles/ID/).
+        Aqui aplicamos a trava de segurança.
+        """
+        obj = super().get_object()
+        user = self.request.user
+
+        if getattr(user, "is_pro", False):
+            return obj
+
+        if self.request.method == "DELETE":
+            return obj
+
+        allowed_vehicle = (
+            Vehicle.objects.filter(user=user, is_active=True).order_by("-id").first()
+        )
+
+        if allowed_vehicle and obj.id != allowed_vehicle.id:
+            raise exceptions.PermissionDenied(
+                detail="🔒 Este veículo faz parte do seu histórico congelado. "
+                "Faça Upgrade para acessar os detalhes ou editá-lo."
+            )
+
+        return obj
 
     def perform_create(self, serializer):
         user = self.request.user
 
-        if not user.is_pro:
-            count = Vehicle.objects.filter(user=user).count()
-            if count >= 1:
+        if not getattr(user, "is_pro", False):
+            if Vehicle.objects.filter(user=user, is_active=True).exists():
                 raise serializers.ValidationError(
                     {
-                        "detail": "🔒 Limite atingido! No plano Grátis você pode ter apenas 1 veículo ativo."
+                        "detail": "🔒 Slot Ocupado! No plano Grátis você pode ter apenas 1 veículo ativo."
                     }
                 )
 

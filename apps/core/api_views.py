@@ -32,6 +32,13 @@ class DashboardSummaryView(APIView):
             target_month = now.month
             target_year = now.year
 
+        today_income = (
+            DailyRecord.objects.filter(user=user, date=today_date).aggregate(
+                t=Sum("total_income")
+            )["t"]
+            or 0
+        )
+
         first_day_month = base_date.replace(day=1)
         next_month = (base_date.replace(day=28) + timedelta(days=4)).replace(day=1)
         last_day_month = next_month - timedelta(days=1)
@@ -111,6 +118,7 @@ class DashboardSummaryView(APIView):
             {
                 "period": f"{base_date.strftime('%B')}/{target_year}",
                 "period_query": {"month": target_month, "year": target_year},
+                "today": {"income": today_income},
                 "kpi": {
                     "income": income,
                     "cost": cost,

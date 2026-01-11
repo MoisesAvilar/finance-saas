@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from django.utils import timezone
 from .models import Category, DailyRecord, Transaction, Maintenance
+from vehicles.models import Vehicle
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -142,6 +143,34 @@ class DailyRecordSerializer(serializers.ModelSerializer):
                     )
 
         return data
+    
+    def validate_vehicle(self, value):
+        """
+        IMPEDE O USO DE VEÍCULOS 'CONGELADOS' NO PLANO FREE.
+        Mesmo que o veículo esteja active=True no banco, se o usuário for Free,
+        ele só pode usar o veículo mais recente (ou o único permitido).
+        """
+        request = self.context.get('request')
+        user = request.user
+
+        if getattr(user, 'is_pro', False):
+            return value
+
+        if value.user != user:
+            raise serializers.ValidationError("Veículo inválido.")
+
+        allowed_vehicle = Vehicle.objects.filter(
+            user=user, 
+            is_active=True
+        ).order_by('-id').first()
+
+        if allowed_vehicle and value.id != allowed_vehicle.id:
+            raise serializers.ValidationError(
+                "Acesso Negado. Este veículo está congelado no seu Plano Grátis. "
+                "Utilize seu veículo principal ou faça Upgrade para liberar a frota."
+            )
+
+        return value
 
 
 class MaintenanceSerializer(serializers.ModelSerializer):
