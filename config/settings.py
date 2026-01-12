@@ -25,9 +25,19 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    # Django allauth
+    'django.contrib.sites',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
+    'dj_rest_auth',
+    'dj_rest_auth.registration',
+
     # Third party apps
     'rest_framework',
     'rest_framework_simplejwt',
+    'rest_framework.authtoken',
     'corsheaders',
     'django_filters',
 
@@ -42,16 +52,57 @@ INSTALLED_APPS = [
     'whitenoise.runserver_nostatic',
 ]
 
+SITE_ID = 1
+
+SOCIALACCOUNT_ADAPTER = 'allauth.socialaccount.adapter.DefaultSocialAccountAdapter'
+
+# Importante para validar ID Tokens
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'APPS': [
+            {
+                'client_id': os.getenv('GOOGLE_CLIENT_ID'),
+                'secret': os.getenv('GOOGLE_CLIENT_SECRET'),
+                'key': ''
+            },
+        ],
+        'AUTH_PARAMS': {'access_type': 'online'},
+        'METHOD': 'oauth2',
+        'SCOPE': ['profile', 'email'],
+        'VERIFIED_EMAIL': True,
+    }
+}
+
+REST_USE_JWT = True
+JWT_AUTH_COOKIE = 'jwt-auth'
+JWT_AUTH_REFRESH_COOKIE = 'jwt-refresh'
+
+REST_AUTH = {
+    'USE_JWT': True,
+    'JWT_AUTH_COOKIE': 'jwt-auth', # Opcional se usar apenas headers
+    'JWT_AUTH_HTTPONLY': False,    # Permite que o JS leia se necessário (no seu caso você usa Cookies.set manual)
+}
+
+SOCIALACCOUNT_EMAIL_VERIFICATION = "none"
+SOCIALACCOUNT_EMAIL_REQUIRED = False
+SOCIALACCOUNT_QUERY_EMAIL = True
+
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
+]
+
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     "whitenoise.middleware.WhiteNoiseMiddleware",
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -183,7 +234,7 @@ SIMPLE_JWT = {
     "BLACKLIST_AFTER_ROTATION": True,
 }
 
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_ALL_ORIGINS = os.getenv('CORS_ALLOW_ALL_ORIGINS', 'False') == 'True'
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
