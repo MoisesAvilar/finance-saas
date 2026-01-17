@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'corsheaders',
     'django_filters',
+    'drf_spectacular',
 
     # Local apps
     'pwa',
@@ -225,6 +226,13 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
     ),
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+}
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Driver Finance API",
+    "DESCRIPTION": "API para o aplicativo Driver Finance",
+    "VERSION": "1.0.0",
 }
 
 SIMPLE_JWT = {

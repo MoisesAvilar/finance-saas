@@ -16,8 +16,10 @@ class CategoryAdmin(admin.ModelAdmin):
         "user",
         "is_fuel",
         "is_maintenance",
+        "created_at",
+        "updated_at",
     )
-    list_filter = ("type", "is_fuel", "is_maintenance")
+    list_filter = ("type", "is_fuel", "is_maintenance", "created_at", "updated_at", "user")
     search_fields = ("name", "user__username", "user__email")
     autocomplete_fields = ["user"]
 
@@ -77,6 +79,8 @@ class TransactionAdmin(admin.ModelAdmin):
         "description",
         "is_full_tank",
         "record_link",
+        "created_at",
+        "updated_at",
     )
     list_editable = ("amount", "description", "category", "is_full_tank")
     list_filter = ("type", "category", "is_full_tank", "created_at", "record__user")

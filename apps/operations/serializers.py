@@ -7,8 +7,8 @@ from vehicles.models import Vehicle
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
-        fields = ["id", "name", "type", "color", "is_fuel", "is_maintenance"]
-        read_only_fields = ["user"]
+        fields = ["id", "name", "type", "color", "is_fuel", "is_maintenance", "created_at", "updated_at"]
+        read_only_fields = ["user", "created_at", "updated_at"]
 
     def validate_name(self, value):
         if len(value) < 2:
@@ -43,9 +43,10 @@ class TransactionSerializer(serializers.ModelSerializer):
             "is_full_tank",
             "next_due_km",
             "created_at",
+            "updated_at",
             "formatted_created_at",
         ]
-        read_only_fields = ["created_at"]
+        read_only_fields = ["created_at", "updated_at"]
 
     def get_formatted_created_at(self, obj):
         return obj.created_at.strftime("%H:%M")

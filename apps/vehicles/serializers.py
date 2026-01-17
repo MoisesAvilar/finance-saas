@@ -2,7 +2,7 @@ from rest_framework import serializers
 from django.apps import apps
 from django.db.models import Sum
 from .models import Vehicle
-from operations.models import Maintenance
+from operations.models import Maintenance, DailyRecord, Transaction
 
 
 class VehicleMaintenanceSerializer(serializers.ModelSerializer):
@@ -122,35 +122,39 @@ class VehicleSerializer(serializers.ModelSerializer):
         return value
 
     def get_stats(self, obj):
-        DailyRecord = apps.get_model("operations", "DailyRecord")
+        total_maint = Maintenance.objects.filter(vehicle=obj).aggregate(Sum('cost'))['cost__sum'] or 0
+        last_maint = Maintenance.objects.filter(vehicle=obj).order_by('-date').first()
 
-        total_maint = (
-            Maintenance.objects.filter(vehicle=obj).aggregate(total=Sum("cost"))[
-                "total"
-            ]
-            or 0
+        financial_data = DailyRecord.objects.filter(vehicle=obj).aggregate(
+            total_earnings=Sum('total_income'),
+            total_cost=Sum('total_cost')
         )
+        earnings = float(financial_data['total_earnings'] or 0)
+        costs = float(financial_data['total_cost'] or 0)
+        profit = earnings - costs
 
-        records = DailyRecord.objects.filter(vehicle=obj, end_km__isnull=False)
-        avg_km = 0
-        if records.exists():
-            total_km_driven = sum(r.km_driven for r in records)
-            avg_km = total_km_driven / records.count()
+        records = DailyRecord.objects.filter(vehicle=obj, is_active=False)
+        total_km_history = sum((r.end_km - r.start_km) for r in records if r.end_km and r.start_km)
 
-        last_maint = (
-            Maintenance.objects.filter(vehicle=obj, next_due_km__isnull=False)
-            .order_by("-date")
-            .first()
-        )
-
-        next_due = last_maint.next_due_km if last_maint else None
-        last_date = last_maint.date.strftime("%d/%m/%Y") if last_maint else None
+        last_tx_with_next_due = Transaction.objects.filter(
+            record__vehicle=obj, 
+            next_due_km__isnull=False
+        ).order_by('-created_at').first()
+        
+        next_km = last_tx_with_next_due.next_due_km if last_tx_with_next_due else None
 
         return {
-            "total_maintenance": total_maint,
-            "avg_daily_km": round(avg_km, 1),
-            "next_maintenance_km": next_due,
-            "last_maintenance_date": last_date,
+            "total_earnings": earnings,
+            "total_cost": costs,
+            "profit_total": profit,
+            "profit_per_km": round(profit / total_km_history, 2) if total_km_history > 0 else 0,
+            "days_active": records.count(),
+            "total_km_history": total_km_history,
+            "fuel_average": float(obj.fuel_average) if obj.fuel_average else 0,
+            "total_maintenance": float(total_maint),
+            "last_maintenance_date": last_maint.date if last_maint else None,
+            "next_maintenance_km": next_km, # Agora vai enviar o valor correto (53914)
+            "avg_daily_km": round(total_km_history / records.count(), 1) if records.count() > 0 else 0,
         }
 
     def get_consumption_history(self, obj):

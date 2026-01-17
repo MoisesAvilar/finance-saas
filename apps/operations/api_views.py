@@ -415,16 +415,12 @@ class CategoryReportDetailView(APIView):
         ).order_by("-record__date")
 
         serializer = TransactionSerializer(transactions, many=True)
+        category_data = CategorySerializer(category).data
 
         return Response(
             {
-                "category": {
-                    "name": category.name,
-                    "type": category.type,
-                    "color": category.color,
-                },
-                "total_period": transactions.aggregate(Sum("amount"))["amount__sum"]
-                or 0,
+                "category": category_data,
+                "total_period": transactions.aggregate(Sum("amount"))["amount__sum"] or 0,
                 "count": transactions.count(),
                 "transactions": serializer.data,
             }

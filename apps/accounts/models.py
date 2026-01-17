@@ -21,10 +21,10 @@ class CustomUser(AbstractUser):
         ('BOTH', 'Ambos'),
     )
     work_type = models.CharField(
-        "Tipo de Trabalho", 
-        max_length=20, 
-        choices=WORK_TYPE_CHOICES, 
-        null=True, 
+        "Tipo de Trabalho",
+        max_length=20,
+        choices=WORK_TYPE_CHOICES,
+        null=True,
         blank=True
     )
 
