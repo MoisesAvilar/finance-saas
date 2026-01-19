@@ -24,6 +24,20 @@ ALLOWED_HOSTS = [
 ]
 
 # ---------------------------------------------------------------------
+# GOOGLE OAUTH — EXPOR NO SETTINGS (⬅️ ISSO RESOLVE O ERRO)
+# ---------------------------------------------------------------------
+GOOGLE_CLIENT_ID_WEB = os.getenv("GOOGLE_CLIENT_ID_WEB")
+GOOGLE_CLIENT_ID_ANDROID = os.getenv("GOOGLE_CLIENT_ID_ANDROID")
+GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
+
+# Segurança mínima
+if not GOOGLE_CLIENT_ID_WEB:
+    raise RuntimeError("GOOGLE_CLIENT_ID_WEB não definido no .env")
+
+if not GOOGLE_CLIENT_SECRET:
+    raise RuntimeError("GOOGLE_CLIENT_SECRET não definido no .env")
+
+# ---------------------------------------------------------------------
 # APPS
 # ---------------------------------------------------------------------
 INSTALLED_APPS = [
@@ -76,8 +90,8 @@ SOCIALACCOUNT_PROVIDERS = {
     "google": {
         "APPS": [
             {
-                "client_id": os.getenv("GOOGLE_CLIENT_ID_WEB"),
-                "secret": os.getenv("GOOGLE_CLIENT_SECRET"),
+                "client_id": GOOGLE_CLIENT_ID_WEB,   # ⬅️ USO CONSISTENTE
+                "secret": GOOGLE_CLIENT_SECRET,
                 "key": "",
             }
         ],
@@ -104,7 +118,7 @@ AUTH_USER_MODEL = "accounts.CustomUser"
 # ---------------------------------------------------------------------
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    "corsheaders.middleware.CorsMiddleware",   # ⬅️ sempre antes
+    "corsheaders.middleware.CorsMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
 
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -215,7 +229,7 @@ SIMPLE_JWT = {
 }
 
 # ---------------------------------------------------------------------
-# CORS (CONFIGURAÇÃO CORRETA PARA NEXT + EXPO)
+# CORS
 # ---------------------------------------------------------------------
 CORS_ALLOW_ALL_ORIGINS = False
 
