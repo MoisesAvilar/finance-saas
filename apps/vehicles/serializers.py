@@ -173,21 +173,16 @@ class VehicleSerializer(serializers.ModelSerializer):
         for i in range(1, len(tx_list)):
             prev = tx_list[i - 1]
             curr = tx_list[i]
-
             km_diff = curr.actual_km - prev.actual_km
 
             if km_diff > 0 and curr.liters > 0:
                 avg = km_diff / float(curr.liters)
-
                 if 4 < avg < 70:
-                    history.append(
-                        {
-                            "km": f"{curr.actual_km}km",
-                            "media": round(avg, 1),
-                            "date": curr.record.date.strftime("%d/%m"),
-                        }
-                    )
-
+                    history.append({
+                        "distancia": km_diff,
+                        "media": round(avg, 1),
+                        "date": curr.record.date.strftime("%d/%m"),
+                    })
         return history[-6:]
 
     def get_maintenance_history(self, obj):

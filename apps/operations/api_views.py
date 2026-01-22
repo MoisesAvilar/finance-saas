@@ -76,7 +76,7 @@ class MonthlyReportView(APIView):
         if user.is_pro:
             if view_type == "monthly":
                 history_qs = (
-                    transactions.values("record__date")
+                    transactions.values("record__id", "record__date")
                     .annotate(
                         income=Sum("amount", filter=Q(type="INCOME")),
                         cost=Sum("amount", filter=Q(type="COST")),
@@ -86,6 +86,7 @@ class MonthlyReportView(APIView):
                 for entry in history_qs:
                     history_data.append(
                         {
+                            "id": entry["record__id"],
                             "date": entry["record__date"].strftime("%d/%m"),
                             "income": float(entry["income"] or 0),
                             "cost": float(entry["cost"] or 0),
